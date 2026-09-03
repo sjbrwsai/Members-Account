@@ -687,10 +687,12 @@ body.dark .stat-card .stat-value { color: #7986cb; }
 }
 body.dark .pie-chart::after { background: #1e1e1e; }
 .pie-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 16px;
     text-align: left;
+    width: 100%;
+    justify-items: start;
 }
 .legend-item {
     display: flex;
@@ -720,9 +722,7 @@ body.dark .legend-pct { color: #888; }
     flex: 1.5;
 }
 .block-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
+    gap: 5px 20px;
 }
 
 .back-to-top {
@@ -938,9 +938,9 @@ body.dark .hero-sub { color: rgba(255,255,255,0.75); }
     padding: 18px 22px;
     backdrop-filter: blur(6px);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 22px;
-    overflow: hidden;
+    gap: 14px;
     transition: transform 0.2s, background 0.2s;
 }
 .hero-pie:hover { transform: translateY(-3px); background: rgba(255,255,255,0.16); }
@@ -1014,5 +1014,6 @@ body.dark .member-photo { border-color: rgba(255,255,255,0.06); }
     .results-info { padding: 0 16px; }
     .results-grid { padding: 0 16px 80px; }
     .pie-chart { width: 90px; height: 90px; }
-    .pie-legend { align-items: center; text-align: center; }
+    .pie-legend { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .hero-pie .legend-item { justify-content: center; }
 }
