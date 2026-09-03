@@ -32,6 +32,8 @@ function parseNum(s) {
     }
 
     function findMemberIdx(arMember) {
+        /* solid account-based match only: a member is linked to member.html
+           only when a real member record matches by account number. */
         var acct = String(arMember.acct || '');
         for (var i = 0; i < MEMBERS.length; i++) {
             if (String(MEMBERS[i].a) === acct) return i;
@@ -47,17 +49,6 @@ function parseNum(s) {
             for (var k = 0; k < MEMBERS.length; k++) {
                 if (normAcct(MEMBERS[k].a) === digitsOnly) return k;
             }
-        }
-        var target = String(arMember.name || '').toLowerCase();
-        if (!target) return -1;
-        for (var b = 0; b < MEMBERS.length; b++) {
-            if (String(MEMBERS[b].b || '') !== String(arMember.block || '')) continue;
-            var nm = String(MEMBERS[b].n || '').toLowerCase();
-            if (target && nm && (target.indexOf(nm) !== -1 || nm.indexOf(target) !== -1)) return b;
-        }
-        for (var g = 0; g < MEMBERS.length; g++) {
-            var gnm = String(MEMBERS[g].n || '').toLowerCase();
-            if (target && gnm && (target.indexOf(gnm) !== -1 || gnm.indexOf(target) !== -1)) return g;
         }
         return -1;
     }
@@ -393,8 +384,14 @@ function parseNum(s) {
             searchQuery = String(v || '');
             currentPage = 1;
             var input = document.getElementById('blockSearchInput');
-            if (input) input.value = searchQuery;
+            var caret = input ? (input.selectionStart || (input.value ? input.value.length : 0)) : 0;
             renderBody();
+            input = document.getElementById('blockSearchInput');
+            if (input) {
+                input.focus();
+                var pos = Math.min(caret, input.value.length);
+                try { input.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
+            }
         },
         selectRange: function(r) {
             trendRange = String(r || '12');
