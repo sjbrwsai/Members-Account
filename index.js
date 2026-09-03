@@ -299,7 +299,9 @@ function goToPage(p) {
     currentPage = p;
     focusedIdx = -1;
     showResults(currentResults);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var searchBar = document.querySelector('.search-section');
+    var offset = searchBar ? searchBar.getBoundingClientRect().top + window.pageYOffset - 12 : 0;
+    window.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
 }
 
 function handleSearchKey(e) {
