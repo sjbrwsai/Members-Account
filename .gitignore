@@ -1,0 +1,26 @@
+# Private / build-time files - never upload these
+server.py
+start.bat
+update_json.py
+check_ar.py
+generate_static_data.py
+upload_images.bat
+b2_config.txt
+_python/
+_python_py313_backup/
+__pycache__/
+server_http.log
+srv_err.log
+srv_out.log
+_debug.json
+unmatched_members.txt
+New folder/
+
+# Source workbooks (private data) - regenerate members_data.js etc. instead
+Members.xlsm
+SENIOR-CITIZEN-SAN-JUAN-DONE.xlsm
+AR_August.xls
+
+# NOTE: The 4 photo folders (2x2_Image/, Senior_2x2/, Signature_Image/,
+# Senior_Signature/) ARE committed to the repo so images are served by
+# GitHub Pages (no card/account needed). Do not ignore them.

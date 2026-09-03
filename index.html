@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Search</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="index.css?v=5">
+    <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-brand">
+        <img src="logo.png" style="height:34px;border-radius:8px;position:relative;z-index:1;">
+        <h1>SJBRWSAI Member Account</h1>
+    </div>
+    <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <button class="nav-tab active" data-page="search">Search Members</button>
+    <a class="nav-tab" href="stats.html">Stats &amp; Payments</a>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <div class="stat-card stat-total">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total Members</div>
+    </div>
+    <div class="stat-card stat-pie">
+        <div class="pie-chart" id="typePie"></div>
+        <div class="pie-legend" id="typeLegend"></div>
+    </div>
+    <div class="stat-card stat-pie">
+        <div class="pie-chart" id="idPie"></div>
+        <div class="pie-legend" id="idLegend"></div>
+    </div>
+    <div class="stat-card stat-pie stat-pie-wide">
+        <div class="pie-chart" id="blockPie"></div>
+        <div class="pie-legend block-legend" id="blockLegend"></div>
+    </div>
+</div>
+
+<div class="recent-section" id="recentSection">
+    <div class="recent-title">Recently Viewed</div>
+    <div class="recent-list" id="recentList"></div>
+</div>
+
+<div class="search-section">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Enter name or account number..." oninput="performSearch()" onkeydown="handleSearchKey(event)">
+        <button onclick="performSearch()">Search</button>
+    </div>
+</div>
+
+<div class="filter-bar" id="filterBar">
+    <div class="filter-group">
+        <label>Block:</label>
+        <div class="chip-row" id="blockChips"></div>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+        <label>Type:</label>
+        <div class="chip-row" id="typeChips"></div>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+        <label>ID Status:</label>
+        <div class="chip-row" id="idChips"></div>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+        <label>Sort:</label>
+        <select id="sortBy" onchange="performSearch()">
+            <option value="name-asc">First Name A-Z</option>
+            <option value="name-desc">First Name Z-A</option>
+            <option value="lastname-asc">Last Name A-Z</option>
+            <option value="lastname-desc">Last Name Z-A</option>
+        </select>
+    </div>
+    <button class="clear-filters-btn" id="clearFilters" onclick="clearAllFilters()">&#10005; Clear Filters</button>
+</div>
+
+<div class="active-filters" id="activeFilters"></div>
+
+<div class="results-info" id="resultsInfo"></div>
+<div class="results-grid" id="resultsGrid"></div>
+<div class="pagination" id="pagination"></div>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script src="members_data.js"></script>
+<script src="balances.js"></script>
+<script src="common.js?v=6"></script>
+<script src="index.js?v=6"></script>
+</body>
+</html>

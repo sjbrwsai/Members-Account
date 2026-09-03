@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Details</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="member.css?v=6">
+    <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="back-btn">&larr; Back</a>
+    <div class="search-wrapper">
+        <input type="text" class="header-search" id="headerSearch" placeholder="Search members..." autocomplete="off">
+        <div class="search-dropdown" id="searchDropdown"></div>
+    </div>
+    <div class="header-right">
+        <img src="logo.png" style="height:34px;border-radius:8px;position:relative;z-index:1;">
+    </div>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()" title="Close">&#10005;</button>
+    <img id="lightboxImg" src="" alt="Photo preview">
+</div>
+
+<script src="members_data.js"></script>
+<script src="payments_data.js"></script>
+<script src="common.js?v=6"></script>
+<script src="member.js?v=10"></script>
+</body>
+</html>

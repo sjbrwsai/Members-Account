@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats &amp; Payments</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="stats.css?v=11">
+    <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-brand">
+        <img src="logo.png" style="height:34px;border-radius:8px;position:relative;z-index:1;">
+        <h1>SJBRWSAI Member Account</h1>
+    </div>
+    <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <a class="nav-tab" href="index.html">Search Members</a>
+    <button class="nav-tab active" data-page="stats">Stats &amp; Payments</button>
+</div>
+
+<div class="stats-page" id="statsPage">
+    <div class="stats-loading" id="statsLoading">Loading statistics...</div>
+</div>
+
+<script src="members_data.js"></script>
+<script src="stats_data.js"></script>
+<script src="trend_data.js"></script>
+<script src="common.js?v=6"></script>
+    <script src="stats.js?v=12"></script>
+</body>
+</html>
