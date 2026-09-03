@@ -435,7 +435,8 @@ function parseNum(s) {
     try {
         var data = (typeof STATS !== 'undefined' && STATS) ? STATS : null;
         if (!data) throw new Error('No stats data');
-        MEMBERS = (typeof MEMBERS !== 'undefined' && MEMBERS) ? MEMBERS : [];
+        var globalMembers = (typeof window !== 'undefined' && window.MEMBERS) ? window.MEMBERS : [];
+        MEMBERS = (typeof globalMembers !== 'undefined' && globalMembers) ? globalMembers : [];
         memberNameIndex = {};
         var tmpName = {};
         for (var mi = 0; mi < MEMBERS.length; mi++) {
