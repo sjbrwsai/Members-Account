@@ -3,6 +3,13 @@ body {
     background-image:
         radial-gradient(circle at 20% 50%, rgba(26,35,126,0.03) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(26,35,126,0.03) 0%, transparent 50%);
+    transition: background 0.3s;
+}
+body.dark {
+    background: linear-gradient(155deg, #0f1120 0%, #141737 50%, #101527 100%);
+}
+body.dark .header-search {
+    background: rgba(255,255,255,0.12);
 }
 
 .header {
@@ -30,6 +37,19 @@ body {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
+.theme-toggle {
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.25); }
 .admin-btn:hover { background: rgba(255,255,255,0.25); }
 .admin-login-btn {
     background: #1a237e;
@@ -1067,6 +1087,19 @@ body.dark .detail-tab.active { color: #9fa8da; border-bottom-color: #9fa8da; }
 body.dark .edit-btn { background: #9fa8da; border-color: #9fa8da; }
 body.dark .edit-btn:hover { background: #b0bec5; }
 body.dark .placeholder-msg { color: #8a8aaa; }
+
+/* ===== Dark mode: profile card & info polish ===== */
+body.dark .profile-card { background: #171a33; box-shadow: 0 4px 24px rgba(0,0,0,0.35); }
+body.dark .section-title { color: #aab6ff; border-bottom-color: #2a2a4a; }
+body.dark .section-title::before { background: linear-gradient(180deg, #7986cb, #3949ab); }
+body.dark .info-item { border-right-color: #2a2a4a; }
+body.dark .info-item::after { background: linear-gradient(90deg, #7986cb, #3949ab); }
+body.dark .info-item .dt-label { color: #8a8aaa; }
+body.dark .info-item:hover .dt-label { color: #aab6ff; }
+body.dark .info-item .dt-value { color: #c5cae9; }
+body.dark .info-item .dt-value.empty { color: #555; }
+body.dark .age-chip { background: rgba(255,255,255,0.12); color: #e0e0e0; }
+body.dark .pay-chart-title { color: #9fa8da; }
 
 @media (max-width: 768px) {
     .header { flex-wrap: wrap; gap: 10px; padding: 14px 16px; justify-content: space-between; }

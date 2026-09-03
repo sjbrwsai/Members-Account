@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Search</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="styles.css?v=5">
-    <link rel="stylesheet" href="index.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=20">
+    <link rel="stylesheet" href="index.css?v=20">
     <script src="xlsx.full.min.js"></script>
 </head>
 <body>
@@ -19,6 +19,15 @@
     <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
     </div>
+</div>
+
+<div class="hero" id="hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>San Juan Balagtas Water Refillers &amp; Suppliers Association Inc.</div>
+    <h2 class="hero-title">Find any member in seconds</h2>
+    <p class="hero-sub">Search by name, account number, SCID, or phone — right from the comfort of home.</p>
+    <div class="hero-stats" id="heroStats"></div>
 </div>
 
 <div class="tab-bar">
@@ -95,8 +104,9 @@
 
     <script src="members_data.js"></script>
     <script src="balances.js"></script>
+    <script src="stats_data.js"></script>
     <script src="payments_data.js"></script>
-    <script src="common.js?v=7"></script>
-    <script src="index.js?v=7"></script>
+    <script src="common.js?v=20"></script>
+    <script src="index.js?v=20"></script>
 </body>
 </html>

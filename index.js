@@ -8,6 +8,7 @@ var currentResults = [];
 var PAGE_SIZE = 20;
 var currentPage = 1;
 var BALANCES = {};
+var revealedOnce = false;
 
 function getBalance(m) {
     if (typeof PAYMENTS_BY_INDEX !== 'undefined' && PAYMENTS_BY_INDEX && typeof MEMBERS !== 'undefined') {
@@ -261,6 +262,15 @@ function showResults(members) {
             '</div></div></div></a>';
     }).join('');
 
+    if (!revealedOnce) {
+        revealedOnce = true;
+        var cards = grid.querySelectorAll('.member-card');
+        cards.forEach(function(c, i) {
+            c.classList.add('reveal');
+            setTimeout(function() { c.classList.add('visible'); }, i * 45);
+        });
+    }
+
     renderPagination(totalPages);
 }
 
@@ -321,13 +331,6 @@ function updateFocus(cards) {
     });
 }
 
-function toggleTheme() {
-    document.body.classList.toggle('dark');
-    var isDark = document.body.classList.contains('dark');
-    document.getElementById('themeToggle').innerHTML = isDark ? '&#9788;' : '&#9790;';
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
-
 function getInitials(name) {
     return name.split(' ').map(function(w) { return w[0] || ''; }).join('').substring(0, 2).toUpperCase();
 }
@@ -356,12 +359,6 @@ function buildChips(containerId, values, withAll) {
     });
 }
 
-function loadTheme() {
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-        document.getElementById('themeToggle').innerHTML = '&#9788;';
-    }
-}
 loadTheme();
 
 function loadRecent() {
@@ -386,6 +383,61 @@ function loadRecent() {
 window.addEventListener('scroll', function() {
     document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 400);
 });
+
+function animateCount(el, target, prefix, isMoney, dur) {
+    var start = 0;
+    var startTime = null;
+    var duration = dur || 1100;
+    function step(ts) {
+        if (!startTime) startTime = ts;
+        var p = Math.min((ts - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = target * eased;
+        var txt = prefix + (isMoney
+            ? '₱' + Number(val).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+            : Math.round(val).toLocaleString('en-PH'));
+        el.textContent = txt;
+        if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+function populateHero() {
+    var hero = document.getElementById('heroStats');
+    if (!hero) return;
+    var ov = (typeof STATS !== 'undefined' && STATS && STATS.overall) ? STATS.overall : null;
+    var stats;
+    if (ov) {
+        stats = [
+            { label: 'Total Accounts', value: ov.total, accent: false },
+            { label: 'With Balance', value: ov.withBalance, accent: false },
+            { label: 'Outstanding Balance', value: ov.totalBalance, accent: true, money: true },
+            { label: 'Without Balance', value: ov.withoutBalance, accent: false }
+        ];
+    } else {
+        var withBalance = 0;
+        var totalBalance = 0;
+        for (var i = 0; i < PAYMENTS_BY_INDEX.length; i++) {
+            if (PAYMENTS_BY_INDEX[i] && PAYMENTS_BY_INDEX[i].totalBalance > 0) withBalance++;
+            if (PAYMENTS_BY_INDEX[i] && PAYMENTS_BY_INDEX[i].totalBalance) totalBalance += PAYMENTS_BY_INDEX[i].totalBalance;
+        }
+        stats = [
+            { label: 'Total Members', value: MEMBERS.length, accent: false },
+            { label: 'With Balance', value: withBalance, accent: false },
+            { label: 'Outstanding Balance', value: totalBalance, accent: true, money: true },
+            { label: 'Water Consumers Served', value: MEMBERS.length, accent: false }
+        ];
+    }
+    var html = '';
+    for (var i2 = 0; i2 < stats.length; i2++) {
+        var s = stats[i2];
+        html += '<div class="hero-stat"><div class="hs-value' + (s.accent ? ' accent' : '') + '" id="hs_' + i2 + '">0</div><div class="hs-label">' + s.label + '</div></div>';
+    }
+    hero.innerHTML = html;
+    for (var i3 = 0; i3 < stats.length; i3++) {
+        animateCount(document.getElementById('hs_' + i3), stats[i3].value, '', stats[i3].money, 1000 + i3 * 120);
+    }
+}
 
 (async function() {
     try {
@@ -416,6 +468,7 @@ window.addEventListener('scroll', function() {
     buildChips('typeChips', ['Member', 'Senior Member'], false);
     buildChips('idChips', ['Has ID', 'No ID'], false);
 
+    populateHero();
     computeStats();
     performSearch();
     loadRecent();

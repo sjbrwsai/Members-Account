@@ -88,6 +88,28 @@ function imgFolder(m, kind) {
 
 document.addEventListener('dragstart', function(e) { e.preventDefault(); });
 
+function updateThemeToggleIcon() {
+    var isDark = document.body.classList.contains('dark');
+    var t = document.getElementById('themeToggle');
+    if (t) t.innerHTML = isDark ? '&#9788;' : '&#9790;';
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    updateThemeToggleIcon();
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+function loadTheme() {
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    updateThemeToggleIcon();
+}
+
+/* Handle the reveal-on-scroll hero ticker if present. */
+document.addEventListener('DOMContentLoaded', function() {
+    loadTheme();
+});
+
 /* Editing was removed for the public static site. A fixed value here would
    just leak a password into the source, so admin mode is disabled entirely. */
 var ADMIN_PASS = '';

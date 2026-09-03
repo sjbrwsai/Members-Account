@@ -73,10 +73,10 @@ function parseNum(s) {
     function renderStructure() {
         var html = '';
         html += '<div class="overall-cards">';
-        html += statCard('With Balance', overall.withBalance, '');
-        html += statCard('Without Balance', overall.withoutBalance, 'green');
-        html += statCard('Total Members', overall.total, '');
-        html += statCard('Total Outstanding', formatPeso(overall.totalBalance), 'orange');
+        html += statCard('With Balance', overall.withBalance + '');
+        html += statCard('Without Balance', overall.withoutBalance + '', 'green');
+        html += statCard('Total Members', overall.total + '');
+        html += statCard('Total Outstanding', overall.totalBalance + '', 'orange', true);
         html += '</div>';
 
         html += '<div class="fill-bar-wrap">' +
@@ -102,6 +102,7 @@ function parseNum(s) {
         html += '<div id="statsBody"></div>';
         page.innerHTML = html;
         renderBody();
+        animateCardCounts();
         bindTrendTooltip();
     }
 
@@ -346,11 +347,36 @@ function parseNum(s) {
         body.innerHTML = html;
     }
 
-    function statCard(label, value, cls) {
-        return '<div class="overall-card">' +
-            '<div class="oc-value' + (cls ? ' ' + cls : '') + '">' + value + '</div>' +
+    function statCard(label, value, cls, isMoney) {
+        return '<div class="overall-card" data-val="' + esc(value) + '"' + (isMoney ? ' data-money="1"' : '') + '>' +
+            '<div class="oc-value' + (cls ? ' ' + cls : '') + '">0</div>' +
             '<div class="oc-label">' + esc(label) + '</div>' +
             '</div>';
+    }
+
+    function animateCardCounts() {
+        var cards = page.querySelectorAll('.overall-card');
+        if (!cards.length) return;
+        cards.forEach(function(card, index) {
+            var target = parseFloat(card.getAttribute('data-val') || '0');
+            var isMoney = card.hasAttribute('data-money');
+            var el = card.querySelector('.oc-value');
+            var dur = 1100 + index * 120;
+            var startTime = null;
+            function step(ts) {
+                if (!startTime) startTime = ts;
+                var p = Math.min((ts - startTime) / dur, 1);
+                var eased = 1 - Math.pow(1 - p, 3);
+                var val = target * eased;
+                if (isMoney) {
+                    el.textContent = '\u20B1' + Number(val).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                    el.textContent = (p < 1 ? Math.round(val) : target).toLocaleString('en-PH');
+                }
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
     }
 
     window.__stats = {

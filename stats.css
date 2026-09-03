@@ -88,21 +88,34 @@ body.dark .nav-tab.active { color: #aab6ff; border-bottom-color: #7986cb; backgr
     margin-bottom: 24px;
 }
 .overall-card {
-    background: white;
+    background: linear-gradient(170deg, #ffffff 55%, #f1f4fc 100%);
     border-radius: 14px;
-    padding: 20px 22px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 22px 22px;
+    box-shadow: 0 6px 24px -10px rgba(13,20,66,0.18);
     border: 1px solid rgba(0,0,0,0.04);
     text-align: center;
+    position: relative;
+    overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
 }
-body.dark .overall-card { background: #1e1e1e; border-color: rgba(255,255,255,0.05); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
-.overall-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.overall-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3949ab, #7986cb);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.overall-card:hover::before { opacity: 1; }
+body.dark .overall-card { background: linear-gradient(170deg, #1e2136 55%, #171a33 100%); border-color: rgba(255,255,255,0.06); box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
+.overall-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px -8px rgba(13,20,66,0.28); }
 .overall-card .oc-value {
     font-size: 34px;
     font-weight: 700;
     color: #1a237e;
     line-height: 1.2;
+    font-variant-numeric: tabular-nums;
 }
 body.dark .overall-card .oc-value { color: #7986cb; }
 .overall-card .oc-value.orange { color: #e65100; }
@@ -287,6 +300,7 @@ body.dark .trend-chart .grid-line { stroke: #333; }
 body.dark .axis-label, body.dark .x-label { fill: #777; }
 
 .stats-title {
+    font-family: 'Sora', 'Inter', 'Segoe UI', sans-serif;
     font-size: 15px;
     font-weight: 700;
     color: #1a237e;
