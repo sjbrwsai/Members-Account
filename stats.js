@@ -31,9 +31,22 @@ function parseNum(s) {
         try { return String(parseInt(a)); } catch (e) { return String(a); }
     }
 
+    function cleanName(n) {
+        return String(n || '')
+            .toLowerCase()
+            .replace(/\([^)]*\)/g, ' ')
+            .replace(/#/g, ' ')
+            .replace(/\b(unit|apt|apartment|rm|room)\b/g, ' ')
+            .replace(/[^a-z ]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    var memberNameIndex = {}; /* cleanName -> member index (unique names only) */
+
     function findMemberIdx(arMember) {
-        /* solid account-based match only: a member is linked to member.html
-           only when a real member record matches by account number. */
+        /* Link a stats row to member.html when a real member profile exists.
+           Priority: account-number match, then unique cleaned-name match. */
         var acct = String(arMember.acct || '');
         for (var i = 0; i < MEMBERS.length; i++) {
             if (String(MEMBERS[i].a) === acct) return i;
@@ -49,6 +62,24 @@ function parseNum(s) {
             for (var k = 0; k < MEMBERS.length; k++) {
                 if (normAcct(MEMBERS[k].a) === digitsOnly) return k;
             }
+        }
+        var cn = cleanName(arMember.name);
+        if (cn && memberNameIndex[cn] !== undefined) return memberNameIndex[cn];
+        if (cn && cn.length >= 3) {
+            /* fall back to the longest member cleaned-name that is a leading part of
+               this row's cleaned name (handles "#1", "-B", unit suffixes, parentheticals
+               appended to a real member profile). Choosing the longest prefix avoids
+               short-name false positives. */
+            var best = -1;
+            var bestLen = -1;
+            for (var nm in memberNameIndex) {
+                if (!nm) continue;
+                if (cn.indexOf(nm) === 0 && nm.length > bestLen) {
+                    best = memberNameIndex[nm];
+                    bestLen = nm.length;
+                }
+            }
+            if (best >= 0) return best;
         }
         return -1;
     }
@@ -405,6 +436,17 @@ function parseNum(s) {
         var data = (typeof STATS !== 'undefined' && STATS) ? STATS : null;
         if (!data) throw new Error('No stats data');
         MEMBERS = (typeof MEMBERS !== 'undefined' && MEMBERS) ? MEMBERS : [];
+        memberNameIndex = {};
+        var tmpName = {};
+        for (var mi = 0; mi < MEMBERS.length; mi++) {
+            var cn = cleanName(MEMBERS[mi] ? MEMBERS[mi].n : '');
+            if (!cn) continue;
+            if (tmpName[cn] === undefined) tmpName[cn] = mi;
+            else tmpName[cn] = -1; /* ambiguous: multiple members share the same cleaned name */
+        }
+        for (var cnk in tmpName) {
+            if (tmpName[cnk] >= 0) memberNameIndex[cnk] = tmpName[cnk];
+        }
         var trendData = (typeof window !== 'undefined' && typeof window.TREND !== 'undefined' && window.TREND) ? window.TREND : null;
         TREND = (trendData && trendData.trend) ? trendData.trend : [];
         trendTotalCycles = (trendData && trendData.totalCycles) ? trendData.totalCycles : TREND.length;
