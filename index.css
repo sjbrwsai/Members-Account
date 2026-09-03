@@ -901,7 +901,7 @@ body.dark .hero-sub { color: rgba(255,255,255,0.75); }
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 14px;
-    max-width: 1100px;
+    max-width: 1320px;
 }
 .hero-total {
     background: rgba(255,255,255,0.10);
