@@ -408,7 +408,7 @@ function parseNum(s) {
         var data = (typeof STATS !== 'undefined' && STATS) ? STATS : null;
         if (!data) throw new Error('No stats data');
         MEMBERS = (typeof MEMBERS !== 'undefined' && MEMBERS) ? MEMBERS : [];
-        var trendData = (typeof TREND !== 'undefined' && TREND) ? TREND : null;
+        var trendData = (typeof window !== 'undefined' && typeof window.TREND !== 'undefined' && window.TREND) ? window.TREND : null;
         TREND = (trendData && trendData.trend) ? trendData.trend : [];
         trendTotalCycles = (trendData && trendData.totalCycles) ? trendData.totalCycles : TREND.length;
         overall = data.overall;

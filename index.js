@@ -403,39 +403,9 @@ function animateCount(el, target, prefix, isMoney, dur) {
 }
 
 function populateHero() {
-    var hero = document.getElementById('heroStats');
-    if (!hero) return;
-    var ov = (typeof STATS !== 'undefined' && STATS && STATS.overall) ? STATS.overall : null;
-    var stats;
-    if (ov) {
-        stats = [
-            { label: 'Total Accounts', value: ov.total, accent: false },
-            { label: 'With Balance', value: ov.withBalance, accent: false },
-            { label: 'Outstanding Balance', value: ov.totalBalance, accent: true, money: true },
-            { label: 'Without Balance', value: ov.withoutBalance, accent: false }
-        ];
-    } else {
-        var withBalance = 0;
-        var totalBalance = 0;
-        for (var i = 0; i < PAYMENTS_BY_INDEX.length; i++) {
-            if (PAYMENTS_BY_INDEX[i] && PAYMENTS_BY_INDEX[i].totalBalance > 0) withBalance++;
-            if (PAYMENTS_BY_INDEX[i] && PAYMENTS_BY_INDEX[i].totalBalance) totalBalance += PAYMENTS_BY_INDEX[i].totalBalance;
-        }
-        stats = [
-            { label: 'Total Members', value: MEMBERS.length, accent: false },
-            { label: 'With Balance', value: withBalance, accent: false },
-            { label: 'Outstanding Balance', value: totalBalance, accent: true, money: true },
-            { label: 'Water Consumers Served', value: MEMBERS.length, accent: false }
-        ];
-    }
-    var html = '';
-    for (var i2 = 0; i2 < stats.length; i2++) {
-        var s = stats[i2];
-        html += '<div class="hero-stat"><div class="hs-value' + (s.accent ? ' accent' : '') + '" id="hs_' + i2 + '">0</div><div class="hs-label">' + s.label + '</div></div>';
-    }
-    hero.innerHTML = html;
-    for (var i3 = 0; i3 < stats.length; i3++) {
-        animateCount(document.getElementById('hs_' + i3), stats[i3].value, '', stats[i3].money, 1000 + i3 * 120);
+    var el = document.getElementById('statTotal');
+    if (el && typeof MEMBERS !== 'undefined' && MEMBERS) {
+        animateCount(el, MEMBERS.length, '', false, 1000);
     }
 }
 
@@ -470,6 +440,7 @@ function populateHero() {
 
     populateHero();
     computeStats();
+    populateHero();
     performSearch();
     loadRecent();
 
