@@ -10,6 +10,13 @@ var currentPage = 1;
 var BALANCES = {};
 
 function getBalance(m) {
+    if (typeof PAYMENTS_BY_INDEX !== 'undefined' && PAYMENTS_BY_INDEX && typeof MEMBERS !== 'undefined') {
+        var idx = MEMBERS.indexOf(m);
+        if (idx !== -1 && PAYMENTS_BY_INDEX[idx] && PAYMENTS_BY_INDEX[idx].totalBalance !== undefined) {
+            var pb = PAYMENTS_BY_INDEX[idx].totalBalance;
+            return (pb === null || pb === '') ? null : Number(pb);
+        }
+    }
     var acct = String(m.a || '');
     if (BALANCES[acct] !== undefined) return BALANCES[acct];
     var num = acct;
