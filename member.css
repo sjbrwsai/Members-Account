@@ -6,7 +6,7 @@ body {
     transition: background 0.3s;
 }
 body.dark {
-    background: linear-gradient(155deg, #0f1120 0%, #141737 50%, #101527 100%);
+    background: linear-gradient(155deg, var(--dark-bg) 0%, var(--dark-bg2) 50%, var(--dark-bg3) 100%);
 }
 body.dark .header-search {
     background: rgba(255,255,255,0.12);
@@ -22,53 +22,6 @@ body.dark .header-search {
     align-items: center;
     gap: 12px;
     flex: 0 0 auto;
-}
-.admin-btn {
-    background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.2);
-    color: white;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.3s;
-    white-space: nowrap;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-.theme-toggle {
-    background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.2);
-    color: white;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.3s;
-    position: relative;
-    z-index: 1;
-}
-.theme-toggle:hover { background: rgba(255,255,255,0.25); }
-.admin-btn:hover { background: rgba(255,255,255,0.25); }
-.admin-login-btn {
-    background: #1a237e;
-    border-color: rgba(255,255,255,0.5);
-}
-.admin-login-btn:hover { background: #283593; }
-.admin-logout-btn {
-    background: #c62828;
-    border-color: #c62828;
-}
-.admin-logout-btn:hover { background: #d32f2f; }
-.edit-counter {
-    color: #ffeb3b;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    background: rgba(255,235,59,0.15);
-    border-radius: 12px;
-    display: none;
 }
 .back-btn {
     background: rgba(255,255,255,0.15);
@@ -632,95 +585,6 @@ body.dark .header-search {
     font-size: 18px;
 }
 
-.login-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-}
-.login-modal.active { display: flex; }
-.login-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-}
-.login-modal-content {
-    position: relative;
-    background: white;
-    border-radius: 16px;
-    padding: 40px 36px 32px;
-    width: 360px;
-    max-width: 90vw;
-    box-shadow: 0 24px 70px rgba(0,0,0,0.3);
-    text-align: center;
-    animation: modalIn 0.25s ease-out;
-}
-@keyframes modalIn {
-    from { opacity: 0; transform: scale(0.92) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.login-modal-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: #f0f0f0;
-    color: #666;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-.login-modal-close:hover { background: #e0e0e0; }
-.login-modal-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1a237e;
-    margin-bottom: 24px;
-}
-.login-modal-input {
-    width: 100%;
-    padding: 14px 18px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: 16px;
-    outline: none;
-    transition: border-color 0.3s;
-    box-sizing: border-box;
-}
-.login-modal-input:focus { border-color: #3949ab; }
-.login-modal-error {
-    color: #f44336;
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 8px;
-    display: none;
-}
-.login-modal-btn {
-    width: 100%;
-    padding: 14px;
-    margin-top: 16px;
-    background: linear-gradient(135deg, #1a237e, #3949ab);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.login-modal-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(26,35,126,0.3);
-}
-
 .edit-btn {
     display: inline-block;
     margin-bottom: 12px;
@@ -1046,7 +910,7 @@ body.dark .pay-legend-item { color: #ccc; }
 .pay-legend-dot-bal { background: #e65100; }
 
 .pay-tip {
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     pointer-events: none;
     background: #1e2430;

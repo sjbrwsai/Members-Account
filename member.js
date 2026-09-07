@@ -42,7 +42,7 @@
                     if (age !== null) bits.push(esc(age) + ' yrs');
                     if (m.d) bits.push(esc(snippet(m.d, 32)));
                     html += '<a class="search-item" href="member.html?i=' + r.idx + '">' +
-                        (photo ? '<img class="si-photo" src="' + esc(photo) + '" onerror="this.style.display=\'none\'">' : '') +
+                        (photo ? '<img class="si-photo" src="' + esc(photo) + '" loading="lazy" onerror="this.style.display=\'none\'">' : '') +
                         '<div class="si-info"><div class="si-name">' + esc(m.n) + '</div>' +
                         '<div class="si-detail">' + bits.join(' &middot; ') + '</div></div></a>';
                 }
@@ -61,7 +61,6 @@
     var m = MEMBERS[idx];
 
     applyAllOverrides();
-    updateAdminUI();
     updateEditCounter();
 
     if (!m) {
@@ -102,8 +101,6 @@
         var dv = 'dt-value';
         var de = 'dt-value empty';
 
-        var editBtnHtml = isAdmin() ? '<button class="edit-btn" onclick="enterEditMode()">Edit</button>' : '';
-
         document.getElementById('content').innerHTML =
             '<div class="profile-card">' +
 
@@ -127,7 +124,6 @@
             '<div class="tab-panel tab-active" id="tabProfile">' +
             '<div class="profile-details" id="profileDetails">' +
 
-            editBtnHtml +
             '<div class="section-title">Name</div>' +
             '<div class="info-row">' +
             '<div class="info-item"><div class="dt-label">First Name</div><div class="' + (member.fn ? dv : de) + '">' + (member.fn ? esc(member.fn) : '\u2014') + '</div></div>' +
@@ -484,6 +480,7 @@
     function bindPayChartHover() {
         var tip = document.getElementById('payTip');
         if (!tip) return;
+        var wrap = tip.parentElement;
         var dots = document.querySelectorAll('#payChart .pay-hit');
         for (var i = 0; i < dots.length; i++) {
             (function(dot) {
@@ -502,11 +499,15 @@
                     tip.style.display = 'block';
                 });
                 dot.addEventListener('mousemove', function(e) {
-                    var rect = tip.getBoundingClientRect();
-                    var x = e.clientX + 16;
-                    var y = e.clientY - rect.height - 10;
-                    if (x + rect.width > window.innerWidth - 8) x = e.clientX - rect.width - 16;
-                    if (y < 8) y = e.clientY + 18;
+                    var wrapRect = wrap.getBoundingClientRect();
+                    var tipW = tip.offsetWidth || 160;
+                    var tipH = tip.offsetHeight || 70;
+                    var x = e.clientX - wrapRect.left + 14;
+                    var y = e.clientY - wrapRect.top + 14;
+                    if (x + tipW > wrapRect.width - 4) x = e.clientX - wrapRect.left - tipW - 14;
+                    if (y + tipH > wrapRect.height - 4) y = e.clientY - wrapRect.top - tipH - 14;
+                    if (x < 4) x = 4;
+                    if (y < 4) y = 4;
                     tip.style.left = x + 'px';
                     tip.style.top = y + 'px';
                 });
@@ -523,10 +524,6 @@
         paymentsPage = page;
         renderPayments();
     };
-
-    function formatPeso(val) {
-        return '\u20B1' + Number(val).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
 
     window.enterEditMode = function() {
         var member = MEMBERS[idx];
@@ -619,17 +616,7 @@
         updateEditCounter();
 
         renderProfile();
-
-        try {
-            var result = await saveToServer(member.a, changes);
-            if (result.ok) {
-                showToast('Saved & Excel updated.');
-            } else {
-                showToast(result.error || 'Excel update failed.', true);
-            }
-        } catch (e) {
-            showToast('Saved locally. Server not reachable.', true);
-        }
+        showToast('Saved locally.');
     };
 
     function snippet(s, len) {
@@ -661,9 +648,12 @@
 
     function saveRecent() {
         if (typeof idx === 'undefined' || isNaN(idx)) return;
+        var member = MEMBERS[idx];
+        if (!member) return;
+        var acc = String(member.a);
         var recent = JSON.parse(localStorage.getItem('recentMembers') || '[]');
-        recent = recent.filter(function(r) { return r !== idx; });
-        recent.unshift(idx);
+        recent = recent.filter(function(r) { return String(r) !== acc; });
+        recent.unshift(acc);
         if (recent.length > 4) recent = recent.slice(0, 4);
         localStorage.setItem('recentMembers', JSON.stringify(recent));
     }

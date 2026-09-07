@@ -18,6 +18,19 @@ img, a, button {
     font-display: swap;
     src: url('fonts/sora-latin.woff2') format('woff2');
 }
+:root {
+    --primary: #1a237e;
+    --primary-dark: #0d1442;
+    --primary-light: #3949ab;
+    --primary-2nd: #283593;
+    --accent: #e65100;
+    --danger: #c62828;
+    --danger-hover: #d32f2f;
+    --success: #2e7d32;
+    --dark-bg: #0f1120;
+    --dark-bg2: #141737;
+    --dark-bg3: #101527;
+}
 body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
@@ -32,8 +45,9 @@ h1, h2, h3, .font-display {
 ::selection { background: rgba(57,73,171,0.22); }
 body.dark ::selection { background: rgba(121,134,203,0.3); }
 
+/* ===== Shared header ===== */
 .header {
-    background: linear-gradient(135deg, #0d1442 0%, #1a237e 40%, #283593 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 40%, var(--primary-2nd) 100%);
     color: white;
     text-align: left;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -75,5 +89,68 @@ body.dark ::selection { background: rgba(121,134,203,0.3); }
 .header img {
     margin-right: 0;
 }
+.header-logo {
+    height: 34px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+}
+.header-actions {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+/* ===== Shared theme toggle ===== */
+.theme-toggle {
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.25); }
+
+/* ===== Shared tab bar / nav ===== */
+.tab-bar {
+    max-width: 1400px;
+    margin: 20px auto 0;
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid rgba(26,35,126,0.15);
+}
+body.dark .tab-bar { border-bottom-color: rgba(255,255,255,0.1); }
+.nav-tab {
+    padding: 12px 22px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 700;
+    color: #888;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    border-radius: 8px 8px 0 0;
+    letter-spacing: 0.3px;
+}
+body.dark .nav-tab { color: #999; }
+.nav-tab:hover { color: var(--primary); }
+body.dark .nav-tab:hover { color: #aab6ff; }
+.nav-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: rgba(26,35,126,0.05);
+}
+body.dark .nav-tab.active { color: #aab6ff; border-bottom-color: #7986cb; background: rgba(121,134,203,0.08); }
 
 @keyframes pillIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }

@@ -4,6 +4,10 @@ function esc(str) {
     return d.innerHTML;
 }
 
+function formatPeso(val) {
+    return '\u20B1' + Number(val || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
 function splitTokens(s) {
     return String(s).toLowerCase().replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
 }
@@ -86,8 +90,6 @@ function imgFolder(m, kind) {
     return IMAGE_BASE + (senior ? 'Senior_2x2/' : '2x2_Image/');
 }
 
-document.addEventListener('dragstart', function(e) { e.preventDefault(); });
-
 function updateThemeToggleIcon() {
     var isDark = document.body.classList.contains('dark');
     var t = document.getElementById('themeToggle');
@@ -109,62 +111,6 @@ function loadTheme() {
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
 });
-
-/* Editing was removed for the public static site. A fixed value here would
-   just leak a password into the source, so admin mode is disabled entirely. */
-var ADMIN_PASS = '';
-
-function isAdmin() {
-    return sessionStorage.getItem('admin') === '1';
-}
-
-function doLogin() {
-    var input = document.getElementById('adminPassInput');
-    var err = document.getElementById('loginError');
-    if (!input) return;
-    var val = input.value.trim();
-    if (val === ADMIN_PASS) {
-        sessionStorage.setItem('admin', '1');
-        closeLoginModal();
-        updateAdminUI();
-    } else {
-        err.style.display = 'block';
-        input.value = '';
-        input.focus();
-    }
-}
-
-function doLogout() {
-    sessionStorage.removeItem('admin');
-    updateAdminUI();
-}
-
-function openLoginModal() {
-    var modal = document.getElementById('loginModal');
-    if (modal) {
-        modal.classList.add('active');
-        var input = document.getElementById('adminPassInput');
-        if (input) { input.value = ''; input.focus(); }
-        var err = document.getElementById('loginError');
-        if (err) err.style.display = 'none';
-    }
-}
-
-function closeLoginModal() {
-    var modal = document.getElementById('loginModal');
-    if (modal) modal.classList.remove('active');
-}
-
-function updateAdminUI() {
-    var logged = isAdmin();
-    var loginBtns = document.querySelectorAll('.admin-login-btn');
-    var adminPanels = document.querySelectorAll('.admin-controls');
-    loginBtns.forEach(function(b) { b.style.display = logged ? 'none' : ''; });
-    adminPanels.forEach(function(p) { p.style.display = logged ? '' : 'none'; });
-    var logoutBtns = document.querySelectorAll('.admin-logout-btn');
-    logoutBtns.forEach(function(b) { b.style.display = logged ? '' : 'none'; });
-    if (typeof renderProfile === 'function') renderProfile();
-}
 
 function getMemberEdits() {
     try { return JSON.parse(localStorage.getItem('memberEdits') || '{}'); } catch (e) { return {}; }
@@ -218,11 +164,6 @@ function updateEditCounter() {
     });
 }
 
-function handleLoginKey(e) {
-    if (e.key === 'Enter') doLogin();
-    if (e.key === 'Escape') closeLoginModal();
-}
-
 function buildWorkbook() {
     if (typeof XLSX === 'undefined') return null;
     var members = [];
@@ -260,10 +201,21 @@ function buildWorkbook() {
 }
 
 function exportToXLSX() {
-    if (typeof XLSX === 'undefined') { alert('SheetJS library not loaded.'); return; }
-    var wb = buildWorkbook();
-    if (!wb) { alert('No member data to export.'); return; }
-    XLSX.writeFile(wb, 'SJBRWSAI_Members_Export.xlsx');
+    function run() {
+        if (typeof XLSX === 'undefined') { alert('SheetJS library not loaded.'); return; }
+        var wb = buildWorkbook();
+        if (!wb) { alert('No member data to export.'); return; }
+        XLSX.writeFile(wb, 'SJBRWSAI_Members_Export.xlsx');
+    }
+    if (typeof XLSX === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'xlsx.full.min.js';
+        s.onload = run;
+        s.onerror = function() { alert('Failed to load export library.'); };
+        document.head.appendChild(s);
+        return;
+    }
+    run();
 }
 
 function showToast(msg, isError) {
@@ -285,10 +237,4 @@ async function loadMembers() {
        (see generate_static_data.py), loaded before this file. */
     window.MEMBERS = (typeof MEMBERS !== 'undefined' && MEMBERS) ? MEMBERS : [];
     return MEMBERS;
-}
-
-async function saveToServer(acctNo, changes) {
-    /* Edit persistence was removed for the static (server-less) site.
-       This stub exists so any leftover callers resolve without error. */
-    return { ok: false, error: 'Editing is not available in the online version.' };
 }

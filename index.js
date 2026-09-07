@@ -7,31 +7,18 @@ var lastSuggested = false;
 var currentResults = [];
 var PAGE_SIZE = 20;
 var currentPage = 1;
-var BALANCES = {};
 var revealedOnce = false;
+var memberIndexMap = null;
 
 function getBalance(m) {
     if (typeof PAYMENTS_BY_INDEX !== 'undefined' && PAYMENTS_BY_INDEX && typeof MEMBERS !== 'undefined') {
-        var idx = MEMBERS.indexOf(m);
+        var idx = memberIndexMap ? memberIndexMap.get(m) : MEMBERS.indexOf(m);
         if (idx !== -1 && PAYMENTS_BY_INDEX[idx] && PAYMENTS_BY_INDEX[idx].totalBalance !== undefined) {
             var pb = PAYMENTS_BY_INDEX[idx].totalBalance;
             return (pb === null || pb === '') ? null : Number(pb);
         }
     }
-    var acct = String(m.a || '');
-    if (BALANCES[acct] !== undefined) return BALANCES[acct];
-    var num = acct;
-    try { num = String(parseInt(acct)); } catch(e) {}
-    if (BALANCES[num] !== undefined) return BALANCES[num];
-    if (acct.indexOf('-') !== -1) {
-        var suffix = acct.split('-').pop();
-        if (BALANCES[suffix] !== undefined) return BALANCES[suffix];
-    }
     return null;
-}
-
-function formatPeso(val) {
-    return '\u20B1' + Number(val || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 
 function getChipValue(containerId) {
@@ -210,7 +197,7 @@ function showResults(members) {
     var info = document.getElementById('resultsInfo');
     var total = MEMBERS.length;
     var count = members.length;
-    var hasFilters = lastQuery || lastBlock || lastType;
+    var hasFilters = lastQuery || lastBlock || lastType || lastIdStatus;
 
     var totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
     if (currentPage > totalPages) currentPage = totalPages;
@@ -239,12 +226,16 @@ function showResults(members) {
         var imgSrc = m.i ? imgFolder(m, 'photo') + m.i : '';
         var photoHtml;
         if (imgSrc) {
-            photoHtml = '<img class="member-photo" src="' + esc(imgSrc) + '" onerror="handleImgError(this,\'' + esc(initials) + '\')" alt="' + esc(m.n) + '">';
+            photoHtml = '<img class="member-photo" src="' + esc(imgSrc) + '" loading="lazy" onerror="handleImgError(this,\'' + esc(initials) + '\')" alt="' + esc(m.n) + '">';
         } else {
             photoHtml = '<div class="member-photo-placeholder">' + esc(initials) + '</div>';
         }
 
-        return '<a href="member.html?i=' + MEMBERS.indexOf(m) + '" style="text-decoration:none;color:inherit" class="card-link">' +
+        var origIdx = memberIndexMap ? memberIndexMap.get(m) : MEMBERS.indexOf(m);
+        var bal = getBalance(m);
+        var balClass = bal !== null && bal > 0 ? ' balance-orange' : '';
+
+        return '<a href="member.html?i=' + origIdx + '" style="text-decoration:none;color:inherit" class="card-link">' +
             '<div class="member-card" data-idx="' + idx + '">' +
             '<div class="photo-col">' +
             photoHtml +
@@ -255,7 +246,7 @@ function showResults(members) {
             '<div class="member-acct">Acct No. ' + highlightText(String(m.a), lastQuery) + (m.mt === 'Senior Member' && m.scid ? ' | SCID ' + esc(m.scid) : '') + '</div>' +
             '<div class="details-grid">' +
             '<span class="detail-label">BLOCK</span><span class="detail-value">' + (m.b ? esc(m.b) : '\u2014') + '</span>' +
-            '<span class="detail-label">Balance</span><span class="detail-value balance-cell' + (getBalance(m) !== null && getBalance(m) > 0 ? ' balance-orange' : '') + '">' + (getBalance(m) !== null ? formatPeso(getBalance(m)) : '\u2014') + '</span>' +
+            '<span class="detail-label">Balance</span><span class="detail-value balance-cell' + balClass + '">' + (bal !== null ? formatPeso(bal) : '\u2014') + '</span>' +
             '<span class="detail-label">Gender</span><span class="detail-value">' + (m.g ? esc(m.g) : '\u2014') + '</span>' +
             '<span class="detail-label">ID Printed</span><span class="detail-value' + (m.di ? ' id-yes' : ' id-no') + '">' + (m.di ? 'Yes' : 'No') + '</span>' +
             '<span class="detail-label">Age</span><span class="detail-value">' + (getAge(m) !== null ? getAge(m) : '\u2014') + '</span>' +
@@ -316,10 +307,6 @@ function handleSearchKey(e) {
         e.preventDefault();
         focusedIdx = Math.max(focusedIdx - 1, 0);
         updateFocus(cards);
-    } else if (e.key === 'Enter' && focusedIdx >= 0) {
-        e.preventDefault();
-        var link = cards[focusedIdx].closest('a');
-        if (link) window.location.href = link.href;
     } else if (e.key === 'Escape') {
         clearAllFilters();
         focusedIdx = -1;
@@ -368,15 +355,21 @@ function loadRecent() {
     var recent = JSON.parse(localStorage.getItem('recentMembers') || '[]');
     var section = document.getElementById('recentSection');
     var list = document.getElementById('recentList');
-    if (!recent.length) { section.classList.add('hidden'); return; }
+    var accIndex = {};
+    MEMBERS.forEach(function(m, i) { accIndex[String(m.a)] = i; });
+    var valid = [];
+    recent.forEach(function(acc) {
+        if (accIndex.hasOwnProperty(String(acc))) valid.push(accIndex[String(acc)]);
+    });
+    if (!valid.length) { section.classList.add('hidden'); return; }
     section.classList.remove('hidden');
     var html = '';
-    recent.forEach(function(idx) {
+    valid.forEach(function(idx) {
         var m = MEMBERS[idx];
         if (!m) return;
         var photo = m.i ? imgFolder(m, 'photo') + m.i : '';
         html += '<a href="member.html?i=' + idx + '" class="recent-item">' +
-            (photo ? '<img class="ri-photo" src="' + esc(photo) + '" onerror="this.style.display=\'none\'">' : '') +
+            (photo ? '<img class="ri-photo" src="' + esc(photo) + '" loading="lazy" onerror="this.style.display=\'none\'">' : '') +
             '<span class="ri-name">' + esc(m.n) + '</span></a>';
     });
     list.innerHTML = html;
@@ -421,14 +414,10 @@ function populateHero() {
     }
 
     applyAllOverrides();
-    updateAdminUI();
     updateEditCounter();
 
-    try {
-        BALANCES = (typeof BALANCES !== 'undefined' && BALANCES) ? BALANCES : {};
-    } catch (e) {
-        BALANCES = {};
-    }
+    memberIndexMap = new Map();
+    MEMBERS.forEach(function(m, i) { memberIndexMap.set(m, i); });
 
     var allBlocks = [];
     MEMBERS.forEach(function(m) {
@@ -440,7 +429,6 @@ function populateHero() {
     buildChips('typeChips', ['Member', 'Senior Member'], false);
     buildChips('idChips', ['Has ID', 'No ID'], false);
 
-    populateHero();
     computeStats();
     populateHero();
     performSearch();

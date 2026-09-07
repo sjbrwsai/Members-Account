@@ -1,11 +1,3 @@
-function esc(s) {
-    return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function formatPeso(val) {
-    return '\u20B1' + Number(val || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
-
 function parseNum(s) {
     var n = parseInt(String(s || '').replace(/[^0-9]/g, ''), 10);
     return isNaN(n) ? 0 : n;
@@ -233,6 +225,7 @@ function parseNum(s) {
     function bindTrendTooltip() {
         var tip = document.getElementById('trendTip');
         if (!tip) return;
+        var wrap = tip.parentElement;
         var bars = document.querySelectorAll('.trend-bar');
         for (var i = 0; i < bars.length; i++) {
             (function(bar) {
@@ -249,11 +242,15 @@ function parseNum(s) {
                     tip.style.display = 'block';
                 });
                 bar.addEventListener('mousemove', function(e) {
-                    var rect = tip.getBoundingClientRect();
-                    var x = e.clientX + 16;
-                    var y = e.clientY - rect.height - 10;
-                    if (x + rect.width > window.innerWidth - 8) x = e.clientX - rect.width - 16;
-                    if (y < 8) y = e.clientY + 18;
+                    var wrapRect = wrap.getBoundingClientRect();
+                    var tipW = tip.offsetWidth || 160;
+                    var tipH = tip.offsetHeight || 70;
+                    var x = e.clientX - wrapRect.left + 14;
+                    var y = e.clientY - wrapRect.top + 14;
+                    if (x + tipW > wrapRect.width - 4) x = e.clientX - wrapRect.left - tipW - 14;
+                    if (y + tipH > wrapRect.height - 4) y = e.clientY - wrapRect.top - tipH - 14;
+                    if (x < 4) x = 4;
+                    if (y < 4) y = 4;
                     tip.style.left = x + 'px';
                     tip.style.top = y + 'px';
                 });
