@@ -855,3 +855,101 @@ body.dark .pay-chart-title { color: #9fa8da; }
     .profile-name { font-size: 32px; }
     .profile-acct { font-size: 22px; }
 }
+
+/* ===== Member Payment Calendar ===== */
+.mcal-wrap {
+    background: #f4f6fb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+body.dark .mcal-wrap { background: #2a2a4a; }
+.mcal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.mcal-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1a237e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+body.dark .mcal-title { color: #9fa8da; }
+.mcal-nav {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.mcal-nav-btn {
+    min-width: 32px;
+    height: 32px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #e8ebf4;
+    color: #6b7390;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 10px;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+body.dark .mcal-nav-btn { background: #3a3a5c; color: #aab0c8; }
+.mcal-nav-btn:hover:not(.disabled) { border-color: #3949ab; color: #1a237e; }
+body.dark .mcal-nav-btn:hover:not(.disabled) { border-color: #9fa8da; color: #ccd1f5; }
+.mcal-nav-btn.disabled { opacity: 0.4; cursor: default; }
+.mcal-nav-btn.latest { min-width: 60px; font-size: 12px; }
+.mcal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+.mcal-dow {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8a90a8;
+    padding: 4px 0;
+}
+.mcal-cell {
+    min-height: 52px;
+    border-radius: 8px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px;
+    box-sizing: border-box;
+    color: #555;
+}
+body.dark .mcal-cell { color: #ccc; }
+.mcal-cell.mcal-empty { visibility: hidden; }
+.mcal-cell.mcal-today { outline: 2px solid #e65100; outline-offset: -2px; }
+.mcal-day-num { font-size: 13px; font-weight: 700; }
+.mcal-cell.mcal-pay {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff;
+    cursor: default;
+}
+body.dark .mcal-cell.mcal-pay { background: linear-gradient(135deg, #3949ab, #9fa8da); }
+.mcal-cell.mcal-pay .mcal-day-num { color: #fff; }
+.mcal-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #aab6ff;
+}
+.mcal-cell.mcal-pay .mcal-badge { color: #fff; opacity: 0.95; }
+@media (max-width: 600px) {
+    .mcal-grid { gap: 4px; }
+    .mcal-cell { min-height: 46px; }
+    .mcal-badge { font-size: 9px; }
+}

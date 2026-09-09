@@ -183,6 +183,11 @@
     var payChartRange = '3'; /* '3', '6', '12', 'all' */
     var payShowPayment = true;
     var payShowBalance = true;
+    var mcalDays = {};         /* 'YYYY-MM-DD' -> total paid by the member */
+    var mcalMonths = [];       /* 'YYYY-MM' descending, only months with payments */
+    var mcalMonth = null;      /* currently displayed month key */
+    var MCAL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var MCAL_DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
     window.loadPayments = async function(memberIdx) {
         var container = document.getElementById('paymentsContent');
@@ -195,11 +200,15 @@
                 if (!data.billing || data.billing.length === 0) {
                     container.innerHTML = '<div class="placeholder-msg">No payment records found for this member.</div>';
                     paymentsTotalBalance = data.totalBalance || 0;
+                    mcalDays = {};
+                    mcalMonths = [];
+                    mcalMonth = null;
                     paymentsLoaded = true;
                     return;
                 }
                 paymentsData = data.billing.slice().reverse();
                 paymentsTotalBalance = data.totalBalance || 0;
+                buildMemberCalendar();
                 paymentsLoaded = true;
                 paymentsPage = 1;
             } catch (e) {
@@ -210,6 +219,80 @@
 
         renderPayments();
     };
+
+    function mpad(n) { return (n < 10 ? '0' : '') + n; }
+
+    function mcalTodayKey() {
+        var t = new Date();
+        return t.getFullYear() + '-' + mpad(t.getMonth() + 1) + '-' + mpad(t.getDate());
+    }
+
+    function compactPeso(v) {
+        var n = Number(v || 0);
+        if (n >= 1000000) return '\u20B1' + (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return '\u20B1' + (n / 1000).toFixed(1) + 'k';
+        return '\u20B1' + Math.round(n);
+    }
+
+    function buildMemberCalendar() {
+        mcalDays = {};
+        var months = {};
+        var tk = mcalTodayKey();
+        paymentsData.forEach(function(b) {
+            var pd = String(b.payDate || '').trim();
+            var pay = Number(b.payment || 0);
+            if (!pd || pay <= 0) return;
+            if (pd > tk) return;
+            mcalDays[pd] = (mcalDays[pd] || 0) + pay;
+            months[pd.slice(0, 7)] = 1;
+        });
+        mcalMonths = Object.keys(months).sort(function(a, b) { return a < b ? 1 : a > b ? -1 : 0; });
+        if (mcalMonths.length && (mcalMonth === null || mcalMonths.indexOf(mcalMonth) === -1)) mcalMonth = mcalMonths[0];
+    }
+
+    function memberPayCalendarHtml() {
+        if (!mcalMonths.length) return '';
+        var tk = mcalTodayKey();
+        var mi = mcalMonths.indexOf(mcalMonth);
+        if (mi === -1) mi = 0;
+        var p = mcalMonth.split('-');
+        var y = parseInt(p[0], 10);
+        var m = parseInt(p[1], 10) - 1;
+
+        var firstDow = new Date(y, m, 1).getDay();
+        var dim = new Date(y, m + 1, 0).getDate();
+
+        var html = '<div class="mcal-wrap">' +
+            '<div class="mcal-head">' +
+            '<span class="mcal-title">' + esc(MCAL_MONTH_NAMES[m] + ' ' + y) + '</span>' +
+            '<div class="mcal-nav">' +
+            '<button type="button" class="mcal-nav-btn' + (mi < mcalMonths.length - 1 ? '' : ' disabled') + '" onclick="window.mcalGo(\'' + (mi < mcalMonths.length - 1 ? mcalMonths[mi + 1] : '') + '\')" title="Previous month">&lsaquo;</button>' +
+            '<button type="button" class="mcal-nav-btn' + (mi > 0 ? '' : ' disabled') + '" onclick="window.mcalGo(\'' + (mi > 0 ? mcalMonths[mi - 1] : '') + '\')" title="Next month">&rsaquo;</button>' +
+            '<button type="button" class="mcal-nav-btn latest" onclick="window.mcalGo(\'' + mcalMonths[0] + '\')" title="Latest payment month">Latest</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="mcal-grid">';
+        MCAL_DOW.forEach(function(d) { html += '<div class="mcal-dow">' + d + '</div>'; });
+        for (var b = 0; b < firstDow; b++) html += '<div class="mcal-cell mcal-empty"></div>';
+        for (var d = 1; d <= dim; d++) {
+            var key = y + '-' + mpad(m + 1) + '-' + mpad(d);
+            var amt = mcalDays[key];
+            if (amt) {
+                html += '<div class="mcal-cell mcal-pay' + (key === tk ? ' mcal-today' : '') + '" title="' + esc(formatPeso(amt)) + ' paid on ' + esc(MCAL_MONTH_NAMES[m] + ' ' + d + ', ' + y) + '">' +
+                    '<span class="mcal-day-num">' + d + '</span>' +
+                    '<span class="mcal-badge">' + esc(compactPeso(amt)) + '</span>' +
+                    '</div>';
+            } else {
+                html += '<div class="mcal-cell' + (key === tk ? ' mcal-today' : '') + '">' +
+                    '<span class="mcal-day-num">' + d + '</span>' +
+                    '</div>';
+            }
+        }
+        var trail = (firstDow + dim) % 7;
+        if (trail) for (var t = 0; t < 7 - trail; t++) html += '<div class="mcal-cell mcal-empty"></div>';
+        html += '</div></div>';
+        return html;
+    }
 
     function renderPayments() {
         var container = document.getElementById('paymentsContent');
@@ -243,6 +326,12 @@
         if (chartHtml) {
             html += '<div class="section-title">Payment Trend</div>';
             html += chartHtml;
+        }
+
+        var calHtml = memberPayCalendarHtml();
+        if (calHtml) {
+            html += '<div class="section-title">Payment Calendar</div>';
+            html += calHtml;
         }
 
         html += '<div class="section-title">Billing History</div>';
@@ -519,6 +608,12 @@
         var totalPages = Math.ceil(paymentsData.length / paymentsPerPage);
         if (page < 1 || page > totalPages) return;
         paymentsPage = page;
+        renderPayments();
+    };
+
+    window.mcalGo = function(monthKey) {
+        if (!monthKey || mcalMonths.indexOf(String(monthKey)) === -1) return;
+        mcalMonth = String(monthKey);
         renderPayments();
     };
 
