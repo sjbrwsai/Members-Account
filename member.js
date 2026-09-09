@@ -183,11 +183,9 @@
     var payChartRange = '3'; /* '3', '6', '12', 'all' */
     var payShowPayment = true;
     var payShowBalance = true;
-    var mcalDays = {};         /* 'YYYY-MM-DD' -> total paid by the member */
-    var mcalMonths = [];       /* 'YYYY-MM' descending, only months with payments */
-    var mcalMonth = null;      /* currently displayed month key */
-    var MCAL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var MCAL_DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var payDates = [];         /* { d: 'YYYY-MM-DD', a: amount }, newest first, paid days only */
+    var payDatePage = 0;       /* current page index (5 dates per page) */
+    var payDatesPerPage = 5;
 
     window.loadPayments = async function(memberIdx) {
         var container = document.getElementById('paymentsContent');
@@ -200,15 +198,14 @@
                 if (!data.billing || data.billing.length === 0) {
                     container.innerHTML = '<div class="placeholder-msg">No payment records found for this member.</div>';
                     paymentsTotalBalance = data.totalBalance || 0;
-                    mcalDays = {};
-                    mcalMonths = [];
-                    mcalMonth = null;
+                    payDates = [];
+                    payDatePage = 0;
                     paymentsLoaded = true;
                     return;
                 }
                 paymentsData = data.billing.slice().reverse();
                 paymentsTotalBalance = data.totalBalance || 0;
-                buildMemberCalendar();
+                buildPayDates();
                 paymentsLoaded = true;
                 paymentsPage = 1;
             } catch (e) {
@@ -220,77 +217,59 @@
         renderPayments();
     };
 
-    function mpad(n) { return (n < 10 ? '0' : '') + n; }
-
-    function mcalTodayKey() {
+    function buildPayDates() {
+        payDates = [];
         var t = new Date();
-        return t.getFullYear() + '-' + mpad(t.getMonth() + 1) + '-' + mpad(t.getDate());
-    }
-
-    function compactPeso(v) {
-        var n = Number(v || 0);
-        if (n >= 1000000) return '\u20B1' + (n / 1000000).toFixed(1) + 'M';
-        if (n >= 1000) return '\u20B1' + (n / 1000).toFixed(1) + 'k';
-        return '\u20B1' + Math.round(n);
-    }
-
-    function buildMemberCalendar() {
-        mcalDays = {};
-        var months = {};
-        var tk = mcalTodayKey();
+        var tk = t.getFullYear() + '-' + (t.getMonth() + 1 < 10 ? '0' : '') + (t.getMonth() + 1) + '-' + (t.getDate() < 10 ? '0' : '') + t.getDate();
+        var map = {};
+        var order = [];
         paymentsData.forEach(function(b) {
             var pd = String(b.payDate || '').trim();
             var pay = Number(b.payment || 0);
             if (!pd || pay <= 0) return;
             if (pd > tk) return;
-            mcalDays[pd] = (mcalDays[pd] || 0) + pay;
-            months[pd.slice(0, 7)] = 1;
+            if (map[pd]) { map[pd].a += pay; return; }
+            map[pd] = { d: pd, a: pay };
+            order.push(pd);
         });
-        mcalMonths = Object.keys(months).sort(function(a, b) { return a < b ? 1 : a > b ? -1 : 0; });
-        if (mcalMonths.length && (mcalMonth === null || mcalMonths.indexOf(mcalMonth) === -1)) mcalMonth = mcalMonths[0];
+        order.sort(function(a, b) { return a < b ? 1 : a > b ? -1 : 0; });
+        order.forEach(function(pd) { payDates.push(map[pd]); });
+        if (payDatePage >= Math.max(1, Math.ceil(payDates.length / payDatesPerPage))) payDatePage = 0;
     }
 
-    function memberPayCalendarHtml() {
-        if (!mcalMonths.length) return '';
-        var tk = mcalTodayKey();
-        var mi = mcalMonths.indexOf(mcalMonth);
-        if (mi === -1) mi = 0;
-        var p = mcalMonth.split('-');
-        var y = parseInt(p[0], 10);
-        var m = parseInt(p[1], 10) - 1;
+    function fmtPayDate(pd) {
+        var p = String(pd || '').split('-');
+        if (p.length < 3) return esc(pd || '\u2014');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var mo = months[parseInt(p[1], 10) - 1] || p[1];
+        return mo + ' ' + parseInt(p[2], 10) + ', ' + p[0];
+    }
 
-        var firstDow = new Date(y, m, 1).getDay();
-        var dim = new Date(y, m + 1, 0).getDate();
-
-        var html = '<div class="mcal-wrap">' +
-            '<div class="mcal-head">' +
-            '<span class="mcal-title">' + esc(MCAL_MONTH_NAMES[m] + ' ' + y) + '</span>' +
-            '<div class="mcal-nav">' +
-            '<button type="button" class="mcal-nav-btn' + (mi < mcalMonths.length - 1 ? '' : ' disabled') + '" onclick="window.mcalGo(\'' + (mi < mcalMonths.length - 1 ? mcalMonths[mi + 1] : '') + '\')" title="Previous month">&lsaquo;</button>' +
-            '<button type="button" class="mcal-nav-btn' + (mi > 0 ? '' : ' disabled') + '" onclick="window.mcalGo(\'' + (mi > 0 ? mcalMonths[mi - 1] : '') + '\')" title="Next month">&rsaquo;</button>' +
-            '<button type="button" class="mcal-nav-btn latest" onclick="window.mcalGo(\'' + mcalMonths[0] + '\')" title="Latest payment month">Latest</button>' +
-            '</div>' +
-            '</div>' +
-            '<div class="mcal-grid">';
-        MCAL_DOW.forEach(function(d) { html += '<div class="mcal-dow">' + d + '</div>'; });
-        for (var b = 0; b < firstDow; b++) html += '<div class="mcal-cell mcal-empty"></div>';
-        for (var d = 1; d <= dim; d++) {
-            var key = y + '-' + mpad(m + 1) + '-' + mpad(d);
-            var amt = mcalDays[key];
-            if (amt) {
-                html += '<div class="mcal-cell mcal-pay' + (key === tk ? ' mcal-today' : '') + '" title="' + esc(formatPeso(amt)) + ' paid on ' + esc(MCAL_MONTH_NAMES[m] + ' ' + d + ', ' + y) + '">' +
-                    '<span class="mcal-day-num">' + d + '</span>' +
-                    '<span class="mcal-badge">' + esc(compactPeso(amt)) + '</span>' +
-                    '</div>';
-            } else {
-                html += '<div class="mcal-cell' + (key === tk ? ' mcal-today' : '') + '">' +
-                    '<span class="mcal-day-num">' + d + '</span>' +
+    function payDatesHtml() {
+        if (!payDates.length) return '';
+        var totalPages = Math.max(1, Math.ceil(payDates.length / payDatesPerPage));
+        if (payDatePage >= totalPages) payDatePage = totalPages - 1;
+        var html = '<div class="pdates-wrap">' +
+            '<button type="button" class="pdates-arrow' + (payDatePage === 0 ? ' disabled' : '') + '" id="pdatesPrev" onclick="window.mpayPage(-1)" title="Previous">&lsaquo;</button>' +
+            '<div class="pdates-viewport"><div class="pdates-track" id="pdatesTrack" style="transform: translateX(-' + (payDatePage * 100) + '%)">';
+        for (var p = 0; p < totalPages; p++) {
+            html += '<div class="pdates-page">';
+            var start = p * payDatesPerPage;
+            var end = Math.min(start + payDatesPerPage, payDates.length);
+            for (var i = start; i < end; i++) {
+                var pd = payDates[i];
+                html += '<div class="pdates-card">' +
+                    '<div class="pdates-card-inner">' +
+                    '<span class="pdates-date">' + fmtPayDate(pd.d) + '</span>' +
+                    '<span class="pdates-amt">' + formatPeso(pd.a) + '</span>' +
+                    '</div>' +
                     '</div>';
             }
+            html += '</div>';
         }
-        var trail = (firstDow + dim) % 7;
-        if (trail) for (var t = 0; t < 7 - trail; t++) html += '<div class="mcal-cell mcal-empty"></div>';
-        html += '</div></div>';
+        html += '</div></div>' +
+            '<button type="button" class="pdates-arrow' + (payDatePage >= totalPages - 1 ? ' disabled' : '') + '" id="pdatesNext" onclick="window.mpayPage(1)" title="Next">&rsaquo;</button>' +
+            '</div>';
         return html;
     }
 
@@ -328,10 +307,10 @@
             html += chartHtml;
         }
 
-        var calHtml = memberPayCalendarHtml();
-        if (calHtml) {
-            html += '<div class="section-title">Payment Calendar</div>';
-            html += calHtml;
+        var pdatesHtml = payDatesHtml();
+        if (pdatesHtml) {
+            html += '<div class="section-title">Payment Dates</div>';
+            html += pdatesHtml;
         }
 
         html += '<div class="section-title">Billing History</div>';
@@ -611,10 +590,19 @@
         renderPayments();
     };
 
-    window.mcalGo = function(monthKey) {
-        if (!monthKey || mcalMonths.indexOf(String(monthKey)) === -1) return;
-        mcalMonth = String(monthKey);
-        renderPayments();
+    window.mpayPage = function(delta) {
+        var total = Math.ceil(payDates.length / payDatesPerPage);
+        if (total < 1) return;
+        delta = Number(delta) || 0;
+        var target = payDatePage + delta;
+        if (target < 0 || target > total - 1 || target === payDatePage) return;
+        payDatePage = target;
+        var track = document.getElementById('pdatesTrack');
+        if (track) track.style.transform = 'translateX(-' + (payDatePage * 100) + '%)';
+        var prev = document.getElementById('pdatesPrev');
+        var next = document.getElementById('pdatesNext');
+        if (prev) prev.classList.toggle('disabled', payDatePage === 0);
+        if (next) next.classList.toggle('disabled', payDatePage >= total - 1);
     };
 
     function snippet(s, len) {
