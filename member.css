@@ -938,6 +938,25 @@ body.dark .pdates-date { color: #ccc; }
     white-space: nowrap;
 }
 body.dark .pdates-amt { color: #9fa8da; }
+.pdates-card.pdates-year {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    border-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.dark .pdates-card.pdates-year { background: linear-gradient(135deg, #3949ab, #9fa8da); }
+.pdates-year-label {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    user-select: none;
+}
+.pdates-card.pdates-today {
+    outline: 2px solid #e65100;
+    outline-offset: -2px;
+}
 @media (max-width: 600px) {
     .pdates-wrap { padding: 12px; gap: 8px; }
     .pdates-arrow { width: 32px; height: 32px; font-size: 18px; }

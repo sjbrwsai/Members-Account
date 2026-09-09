@@ -184,7 +184,9 @@
     var payShowPayment = true;
     var payShowBalance = true;
     var payDates = [];         /* { d: 'YYYY-MM-DD', a: amount }, newest first, paid days only */
-    var payDatePage = 0;       /* current page index (5 dates per page) */
+    var payItems = [];         /* row items: { type: 'p', d, a } or { type: 'y', y }; year markers occupy an item slot */
+    var todayKey = '';         /* 'YYYY-MM-DD' for the current date */
+    var payDatePage = 0;       /* current page index (5 items per page) */
     var payDatesPerPage = 5;
 
     window.loadPayments = async function(memberIdx) {
@@ -199,6 +201,8 @@
                     container.innerHTML = '<div class="placeholder-msg">No payment records found for this member.</div>';
                     paymentsTotalBalance = data.totalBalance || 0;
                     payDates = [];
+                    payItems = [];
+                    todayKey = '';
                     payDatePage = 0;
                     paymentsLoaded = true;
                     return;
@@ -221,6 +225,7 @@
         payDates = [];
         var t = new Date();
         var tk = t.getFullYear() + '-' + (t.getMonth() + 1 < 10 ? '0' : '') + (t.getMonth() + 1) + '-' + (t.getDate() < 10 ? '0' : '') + t.getDate();
+        todayKey = tk;
         var map = {};
         var order = [];
         paymentsData.forEach(function(b) {
@@ -234,7 +239,15 @@
         });
         order.sort(function(a, b) { return a < b ? 1 : a > b ? -1 : 0; });
         order.forEach(function(pd) { payDates.push(map[pd]); });
-        if (payDatePage >= Math.max(1, Math.ceil(payDates.length / payDatesPerPage))) payDatePage = 0;
+        payItems = [];
+        var prevY = null;
+        payDates.forEach(function(pd) {
+            var y = parseInt(String(pd.d).split('-')[0], 10);
+            if (prevY !== null && y !== prevY) payItems.push({ type: 'y', y: y });
+            payItems.push({ type: 'p', d: pd.d, a: pd.a });
+            prevY = y;
+        });
+        if (payDatePage >= Math.max(1, Math.ceil(payItems.length / payDatesPerPage))) payDatePage = 0;
     }
 
     function fmtPayDate(pd) {
@@ -246,8 +259,8 @@
     }
 
     function payDatesHtml() {
-        if (!payDates.length) return '';
-        var totalPages = Math.max(1, Math.ceil(payDates.length / payDatesPerPage));
+        if (!payItems.length) return '';
+        var totalPages = Math.max(1, Math.ceil(payItems.length / payDatesPerPage));
         if (payDatePage >= totalPages) payDatePage = totalPages - 1;
         var html = '<div class="pdates-wrap">' +
             '<button type="button" class="pdates-arrow' + (payDatePage === 0 ? ' disabled' : '') + '" id="pdatesPrev" onclick="window.mpayPage(-1)" title="Previous">&lsaquo;</button>' +
@@ -255,13 +268,17 @@
         for (var p = 0; p < totalPages; p++) {
             html += '<div class="pdates-page">';
             var start = p * payDatesPerPage;
-            var end = Math.min(start + payDatesPerPage, payDates.length);
+            var end = Math.min(start + payDatesPerPage, payItems.length);
             for (var i = start; i < end; i++) {
-                var pd = payDates[i];
-                html += '<div class="pdates-card">' +
+                var it = payItems[i];
+                if (it.type === 'y') {
+                    html += '<div class="pdates-card pdates-year"><span class="pdates-year-label">' + esc(it.y) + '</span></div>';
+                    continue;
+                }
+                html += '<div class="pdates-card' + (it.d === todayKey ? ' pdates-today' : '') + '">' +
                     '<div class="pdates-card-inner">' +
-                    '<span class="pdates-date">' + fmtPayDate(pd.d) + '</span>' +
-                    '<span class="pdates-amt">' + formatPeso(pd.a) + '</span>' +
+                    '<span class="pdates-date">' + fmtPayDate(it.d) + '</span>' +
+                    '<span class="pdates-amt">' + formatPeso(it.a) + '</span>' +
                     '</div>' +
                     '</div>';
             }
@@ -591,7 +608,7 @@
     };
 
     window.mpayPage = function(delta) {
-        var total = Math.ceil(payDates.length / payDatesPerPage);
+        var total = Math.ceil(payItems.length / payDatesPerPage);
         if (total < 1) return;
         delta = Number(delta) || 0;
         var target = payDatePage + delta;
