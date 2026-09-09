@@ -270,7 +270,7 @@
                     html += '<div class="pdates-card pdates-year"><span class="pdates-year-label">' + esc(it.y) + '</span></div>';
                     continue;
                 }
-                html += '<div class="pdates-card' + (it.d === payDates[0].d ? ' pdates-latest' : '') + (it.d === todayKey ? ' pdates-today' : '') + '">' +
+                html += '<div class="pdates-card' + (i === 0 ? ' pdates-latest' : '') + (it.d === todayKey ? ' pdates-today' : '') + '">' +
                     '<div class="pdates-card-inner">' +
                     '<span class="pdates-date">' + fmtPayDate(it.d) + '</span>' +
                     '<span class="pdates-amt">' + formatPeso(it.a) + '</span>' +
