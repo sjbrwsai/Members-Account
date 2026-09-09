@@ -763,7 +763,6 @@ body.dark .hero-sub { color: rgba(255,255,255,0.75); }
 .hero-pie .pie-chart::after { background: #1a237e; }
 .hero-pie .legend-item { color: rgba(255,255,255,0.92); }
 .hero-pie .legend-pct { color: rgba(255,255,255,0.6); }
-.hero-pie-wide { grid-column: span 2; }
 
 /* ===== Scroll reveal ===== */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
