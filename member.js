@@ -60,9 +60,6 @@
     var idx = parseInt(params.get('i'));
     var m = MEMBERS[idx];
 
-    applyAllOverrides();
-    updateEditCounter();
-
     if (!m) {
         document.getElementById('content').innerHTML =
             '<div class="not-found"><p>Member not found.</p><br><a href="index.html">&larr; Go back to search</a></div>';
@@ -523,100 +520,6 @@
         if (page < 1 || page > totalPages) return;
         paymentsPage = page;
         renderPayments();
-    };
-
-    window.enterEditMode = function() {
-        var member = MEMBERS[idx];
-        var details = document.getElementById('profileDetails');
-        if (!details) return;
-
-        var edits = getMemberEdits();
-        var saved = edits[member.a] || {};
-
-        function val(field, orig) { return saved[field] !== undefined ? saved[field] : (orig || ''); }
-
-        var fields = [
-            { key: 'fn', label: 'First Name', value: val('fn', member.fn) },
-            { key: 'mn', label: 'Middle Name', value: val('mn', member.mn) },
-            { key: 'ln', label: 'Last Name', value: val('ln', member.ln) },
-            { key: 'a', label: 'Account No.', value: val('a', member.a) },
-            { key: 'b', label: 'Block', value: val('b', member.b) },
-            { key: 'c', label: 'Contact No.', value: val('c', member.c) },
-            { key: 'd', label: 'Address', value: val('d', member.d) },
-            { key: 'r', label: 'Birthdate', value: val('r', member.r) },
-            { key: 'g', label: 'Gender', value: val('g', member.g), type: 'select', options: ['', 'Male', 'Female'] },
-            { key: 'scid', label: 'SCID No.', value: val('scid', member.scid), seniorOnly: true },
-            { key: 'mt', label: 'Member Type', value: val('mt', member.mt), type: 'select', options: ['Member', 'Senior Member'] },
-            { key: 'doi', label: 'Date of Installation', value: val('doi', member.doi) },
-            { key: 'di', label: 'Date Issued', value: val('di', member.di) }
-        ];
-
-        var origValues = {};
-        fields.forEach(function(f) { origValues[f.key] = f.value; });
-
-        var html = '<div class="section-title">Edit Member Details</div>';
-        fields.forEach(function(f) {
-            if (f.seniorOnly && member.mt !== 'Senior Member') return;
-            html += '<div class="info-row"><div class="info-item" style="flex:1;min-width:200px;border-right:none">';
-            html += '<div class="dt-label">' + esc(f.label) + '</div>';
-            if (f.type === 'select') {
-                html += '<select class="dt-input" data-field="' + f.key + '">';
-                f.options.forEach(function(opt) {
-                    html += '<option value="' + esc(opt) + '"' + (f.value === opt ? ' selected' : '') + '>' + (esc(opt) || '\u2014') + '</option>';
-                });
-                html += '</select>';
-            } else {
-                html += '<input class="dt-input" data-field="' + f.key + '" value="' + esc(f.value) + '">';
-            }
-            html += '</div></div>';
-        });
-
-        html += '<div class="edit-actions">';
-        html += '<button class="edit-cancel-btn" onclick="exitEditMode()">Cancel</button>';
-        html += '<button class="edit-save-btn" onclick="saveEdit()">Save</button>';
-        html += '</div>';
-
-        details.classList.add('editing');
-        details.innerHTML = html;
-
-        details.querySelectorAll('.dt-input').forEach(function(input) {
-            var field = input.getAttribute('data-field');
-            var orig = origValues[field] || '';
-            function checkModified() {
-                var current = input.tagName === 'SELECT' ? input.value : input.value.trim();
-                input.classList.toggle('modified', current !== orig);
-            }
-            input.addEventListener('input', checkModified);
-            input.addEventListener('change', checkModified);
-            checkModified();
-        });
-    };
-
-    window.exitEditMode = function() {
-        renderProfile();
-    };
-
-    window.saveEdit = async function() {
-        var member = MEMBERS[idx];
-        var inputs = document.querySelectorAll('#profileDetails .dt-input');
-        var changes = {};
-
-        inputs.forEach(function(input) {
-            var field = input.getAttribute('data-field');
-            var val = input.tagName === 'SELECT' ? input.value : input.value.trim();
-            changes[field] = val;
-        });
-
-        var keys = Object.keys(changes);
-        for (var i = 0; i < keys.length; i++) {
-            member[keys[i]] = changes[keys[i]];
-        }
-
-        saveMemberEdit(member.a, changes);
-        updateEditCounter();
-
-        renderProfile();
-        showToast('Saved locally.');
     };
 
     function snippet(s, len) {

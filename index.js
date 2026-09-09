@@ -413,9 +413,6 @@ function populateHero() {
         return;
     }
 
-    applyAllOverrides();
-    updateEditCounter();
-
     memberIndexMap = new Map();
     MEMBERS.forEach(function(m, i) { memberIndexMap.set(m, i); });
 
