@@ -939,20 +939,20 @@ body.dark .pdates-date { color: #ccc; }
 }
 body.dark .pdates-amt { color: #9fa8da; }
 .pdates-card.pdates-year {
-    background: linear-gradient(135deg, #1a237e, #3949ab);
+    background: transparent;
     border-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-body.dark .pdates-card.pdates-year { background: linear-gradient(135deg, #3949ab, #9fa8da); }
 .pdates-year-label {
-    font-size: 14px;
+    font-size: 24px;
     font-weight: 800;
-    color: #fff;
+    color: #1a237e;
     letter-spacing: 1px;
     user-select: none;
 }
+body.dark .pdates-year-label { color: #9fa8da; }
 .pdates-card.pdates-today {
     outline: 2px solid #e65100;
     outline-offset: -2px;
@@ -963,4 +963,5 @@ body.dark .pdates-card.pdates-year { background: linear-gradient(135deg, #3949ab
     .pdates-card { padding: 8px 6px; }
     .pdates-date { font-size: 11px; }
     .pdates-amt { font-size: 13px; }
+    .pdates-year-label { font-size: 18px; }
 }
