@@ -15,13 +15,14 @@ body.dark .header-search {
 .header {
     padding: 24px 48px;
     gap: 16px;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 .header-right {
     display: flex;
     align-items: center;
     gap: 12px;
     flex: 0 0 auto;
+    margin-left: auto;
 }
 .back-btn {
     background: rgba(255,255,255,0.15);

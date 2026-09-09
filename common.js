@@ -110,7 +110,24 @@ function loadTheme() {
 /* Handle the reveal-on-scroll hero ticker if present. */
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
+    startHeaderClock();
 });
+
+function startHeaderClock() {
+    var el = document.getElementById('headerClock');
+    if (!el) return;
+    var dateEl = document.createElement('span');
+    var timeEl = document.createElement('span');
+    el.appendChild(dateEl);
+    el.appendChild(timeEl);
+    function tick() {
+        var d = new Date();
+        dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        timeEl.textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+    }
+    tick();
+    setInterval(tick, 1000);
+}
 
 function getMemberEdits() {
     try { return JSON.parse(localStorage.getItem('memberEdits') || '{}'); } catch (e) { return {}; }
