@@ -27,6 +27,16 @@ function parseNum(s) {
 
     function calDateKey(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
 
+    function calTodayKey() {
+        var t = new Date();
+        return calDateKey(t.getFullYear(), t.getMonth(), t.getDate());
+    }
+
+    function currentMonthKey() {
+        var t = new Date();
+        return t.getFullYear() + '-' + pad2(t.getMonth() + 1);
+    }
+
     function normAcct(a) {
         if (!a) return '';
         try { return String(parseInt(a)); } catch (e) { return String(a); }
@@ -412,24 +422,26 @@ function parseNum(s) {
     function renderCalendar() {
         var cal = (typeof PAY_CALENDAR !== 'undefined' && PAY_CALENDAR) ? PAY_CALENDAR : null;
         if (!cal || !cal.days || !cal.months || !cal.months.length) return '';
-        if (calMonth === null) calMonth = cal.months[0];
+        var cur = currentMonthKey();
+        var list = cal.months.filter(function(mm) { return mm <= cur; });
+        if (list.indexOf(cur) === -1) list.unshift(cur);
+        if (calMonth === null || list.indexOf(calMonth) === -1) calMonth = list[0];
         var p = calMonth.split('-');
         var y = parseInt(p[0], 10);
         var m = parseInt(p[1], 10) - 1;
-        var mi = cal.months.indexOf(calMonth);
+        var mi = list.indexOf(calMonth);
 
-        var today = new Date();
-        var todayKey = calDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+        var todayKey = calTodayKey();
 
         var firstDow = new Date(y, m, 1).getDay();
         var dim = new Date(y, m + 1, 0).getDate();
         var html = '<div class="cal-wrap">' +
             '<div class="cal-head"><span class="stats-title">Payment Calendar</span>' +
             '<div class="cal-nav">' +
-            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi < cal.months.length - 1 ? cal.months[mi + 1] : '') + '\')"' + (mi < cal.months.length - 1 ? '' : ' disabled') + ' title="Previous month">&lsaquo;</button>' +
+            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi < list.length - 1 ? list[mi + 1] : '') + '\')"' + (mi < list.length - 1 ? '' : ' disabled') + ' title="Previous month">&lsaquo;</button>' +
             '<span class="cal-month">' + esc(MONTH_NAMES[m]) + ' ' + y + '</span>' +
-            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi > 0 ? cal.months[mi - 1] : '') + '\')"' + (mi > 0 ? '' : ' disabled') + ' title="Next month">&rsaquo;</button>' +
-            '<button type="button" class="cal-nav-btn cal-today-btn" onclick="window.__stats.calGo(\'' + esc(cal.months[0]) + '\')">This month</button>' +
+            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi > 0 ? list[mi - 1] : '') + '\')"' + (mi > 0 ? '' : ' disabled') + ' title="Next month">&rsaquo;</button>' +
+            '<button type="button" class="cal-nav-btn cal-today-btn" onclick="window.__stats.calGo(\'' + esc(cur) + '\')">This month</button>' +
             '</div></div>';
         html += '<div class="cal-grid">';
         DOW_NAMES.forEach(function(d) { html += '<div class="cal-dow">' + d + '</div>'; });
@@ -437,7 +449,7 @@ function parseNum(s) {
         for (var d = 1; d <= dim; d++) {
             var key = calDateKey(y, m, d);
             var entries = cal.days[key];
-            var active = !!(entries && entries.length);
+            var active = !!(entries && entries.length) && key <= todayKey;
             if (active) {
                 html += '<button type="button" class="cal-cell cal-btn' + (key === todayKey ? ' cal-today' : '') + '" onclick="window.__stats.calOpen(\'' + key + '\')" title="' + entries.length + ' paid on ' + esc(MONTH_NAMES[m]) + ' ' + d + '">' +
                     '<span class="cal-day-num">' + d + '</span>' +
@@ -458,6 +470,7 @@ function parseNum(s) {
     function openDayModal(dateKey) {
         var cal = (typeof PAY_CALENDAR !== 'undefined' && PAY_CALENDAR) ? PAY_CALENDAR : null;
         if (!cal || !cal.days || !cal.days[dateKey]) return;
+        if (String(dateKey) > calTodayKey()) return;
 
         var entries = cal.days[dateKey];
         var list = [];
@@ -564,6 +577,7 @@ function parseNum(s) {
         },
         calGo: function(monthKey) {
             if (!monthKey) return;
+            if (String(monthKey) > currentMonthKey()) return;
             calMonth = String(monthKey);
             renderStructure();
         },
