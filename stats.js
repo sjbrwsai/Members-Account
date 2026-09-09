@@ -17,6 +17,15 @@ function parseNum(s) {
     var currentBlock = null;
     var currentPage = 1;
     var searchQuery = '';
+    var calMonth = null;
+    var calPayList = [];
+
+    var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    function calDateKey(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
 
     function normAcct(a) {
         if (!a) return '';
@@ -105,6 +114,8 @@ function parseNum(s) {
             '</div>';
 
         html += renderTrend();
+
+        html += renderCalendar();
 
         html += '<div class="block-tabs">';
         html += '<button class="block-tab' + (currentBlock === null ? ' active' : '') + '" onclick="window.__stats.selectBlock(null)">All Blocks</button>';
@@ -398,6 +409,132 @@ function parseNum(s) {
         });
     }
 
+    function renderCalendar() {
+        var cal = (typeof PAY_CALENDAR !== 'undefined' && PAY_CALENDAR) ? PAY_CALENDAR : null;
+        if (!cal || !cal.days || !cal.months || !cal.months.length) return '';
+        if (calMonth === null) calMonth = cal.months[0];
+        var p = calMonth.split('-');
+        var y = parseInt(p[0], 10);
+        var m = parseInt(p[1], 10) - 1;
+        var mi = cal.months.indexOf(calMonth);
+
+        var today = new Date();
+        var todayKey = calDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+        var firstDow = new Date(y, m, 1).getDay();
+        var dim = new Date(y, m + 1, 0).getDate();
+        var html = '<div class="cal-wrap">' +
+            '<div class="cal-head"><span class="stats-title">Payment Calendar</span>' +
+            '<div class="cal-nav">' +
+            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi < cal.months.length - 1 ? cal.months[mi + 1] : '') + '\')"' + (mi < cal.months.length - 1 ? '' : ' disabled') + ' title="Previous month">&lsaquo;</button>' +
+            '<span class="cal-month">' + esc(MONTH_NAMES[m]) + ' ' + y + '</span>' +
+            '<button type="button" class="cal-nav-btn" onclick="window.__stats.calGo(\'' + (mi > 0 ? cal.months[mi - 1] : '') + '\')"' + (mi > 0 ? '' : ' disabled') + ' title="Next month">&rsaquo;</button>' +
+            '<button type="button" class="cal-nav-btn cal-today-btn" onclick="window.__stats.calGo(\'' + esc(cal.months[0]) + '\')">This month</button>' +
+            '</div></div>';
+        html += '<div class="cal-grid">';
+        DOW_NAMES.forEach(function(d) { html += '<div class="cal-dow">' + d + '</div>'; });
+        for (var b = 0; b < firstDow; b++) html += '<div class="cal-cell cal-empty"></div>';
+        for (var d = 1; d <= dim; d++) {
+            var key = calDateKey(y, m, d);
+            var entries = cal.days[key];
+            var active = !!(entries && entries.length);
+            if (active) {
+                html += '<button type="button" class="cal-cell cal-btn' + (key === todayKey ? ' cal-today' : '') + '" onclick="window.__stats.calOpen(\'' + key + '\')" title="' + entries.length + ' paid on ' + esc(MONTH_NAMES[m]) + ' ' + d + '">' +
+                    '<span class="cal-day-num">' + d + '</span>' +
+                    '<span class="cal-badge">' + entries.length + '</span>' +
+                    '</button>';
+            } else {
+                html += '<div class="cal-cell' + (key === todayKey ? ' cal-today' : '') + '">' +
+                    '<span class="cal-day-num">' + d + '</span>' +
+                    '</div>';
+            }
+        }
+        var trail = (firstDow + dim) % 7;
+        if (trail) for (var t = 0; t < 7 - trail; t++) html += '<div class="cal-cell cal-empty"></div>';
+        html += '</div></div>';
+        return html;
+    }
+
+    function openDayModal(dateKey) {
+        var cal = (typeof PAY_CALENDAR !== 'undefined' && PAY_CALENDAR) ? PAY_CALENDAR : null;
+        if (!cal || !cal.days || !cal.days[dateKey]) return;
+
+        var entries = cal.days[dateKey];
+        var list = [];
+        var total = 0;
+        entries.forEach(function(e) {
+            list.push({ idx: e[0], amt: e[1] });
+            total += Number(e[1] || 0);
+        });
+        list.sort(function(a, b) {
+            var na = (MEMBERS[a.idx] ? (MEMBERS[a.idx].n || '') : '').toLowerCase();
+            var nb = (MEMBERS[b.idx] ? (MEMBERS[b.idx].n || '') : '').toLowerCase();
+            return na < nb ? -1 : na > nb ? 1 : 0;
+        });
+        calPayList = list;
+
+        var dt = new Date(dateKey + 'T00:00:00');
+        var title = dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+        var modal = document.getElementById('payModal');
+        modal.innerHTML = '<div class="pay-modal-box">' +
+            '<div class="pay-modal-head">' +
+            '<div class="pay-modal-titles">' +
+            '<div class="pay-modal-title">' + esc(title) + '</div>' +
+            '<div class="pay-modal-sub">' + list.length + ' member' + (list.length !== 1 ? 's' : '') + ' paid &middot; Total ' + formatPeso(total) + '</div>' +
+            '</div>' +
+            '<button type="button" class="pay-modal-close" onclick="window.__stats.calClose()" title="Close">&times;</button>' +
+            '</div>' +
+            '<div class="pay-modal-search"><input type="text" id="payModalSearch" placeholder="Search name or account..." autocomplete="off" oninput="window.__stats.calSearch(this.value)"></div>' +
+            '<div class="pay-modal-list" id="payModalList"></div>' +
+            '</div>';
+        modal.onclick = function(e) { if (e.target === modal) closeDayModal(); };
+        renderPayList('');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        var inp = document.getElementById('payModalSearch');
+        if (inp) setTimeout(function() { inp.focus(); }, 30);
+    }
+
+    function renderPayList(q) {
+        var listEl = document.getElementById('payModalList');
+        if (!listEl) return;
+        q = String(q || '').trim().toLowerCase();
+        var rows = calPayList.filter(function(e) {
+            if (!q) return true;
+            var m = MEMBERS[e.idx] || {};
+            return String(m.n || '').toLowerCase().indexOf(q) !== -1 ||
+                String(m.a || '').toLowerCase().indexOf(q) !== -1;
+        });
+        if (!rows.length) {
+            listEl.innerHTML = '<div class="pay-list-empty">No payers found</div>';
+            return;
+        }
+        var html = '';
+        rows.forEach(function(e) {
+            var m = MEMBERS[e.idx] || {};
+            html += '<a class="pay-row" href="member.html?i=' + e.idx + '">' +
+                '<span class="pay-row-main"><span class="pay-row-name">' + esc(m.n || 'Unknown') + '</span>' +
+                '<span class="pay-row-meta">' + (m.a ? 'Acct ' + esc(String(m.a)) : 'Acct \u2014') + (m.b ? ' &middot; Block ' + esc(m.b) : '') + '</span></span>' +
+                '<span class="pay-row-amt">' + formatPeso(e.amt) + '</span>' +
+                '</a>';
+        });
+        listEl.innerHTML = html;
+    }
+
+    function closeDayModal() {
+        var modal = document.getElementById('payModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+        }
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeDayModal();
+    });
+
     window.__stats = {
         selectBlock: function(block) {
             currentBlock = block;
@@ -424,7 +561,15 @@ function parseNum(s) {
         selectRange: function(r) {
             trendRange = String(r || '12');
             renderStructure();
-        }
+        },
+        calGo: function(monthKey) {
+            if (!monthKey) return;
+            calMonth = String(monthKey);
+            renderStructure();
+        },
+        calOpen: openDayModal,
+        calSearch: renderPayList,
+        calClose: closeDayModal
     };
 
     /* Static site: stats/members/trend are pre-generated JS globals
