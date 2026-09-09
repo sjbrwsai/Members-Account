@@ -183,7 +183,7 @@
     var payChartRange = '3'; /* '3', '6', '12', 'all' */
     var payShowPayment = true;
     var payShowBalance = true;
-    var payDates = [];         /* { d: 'YYYY-MM-DD', a: amount }, newest first, paid days only */
+    var payDates = [];         /* one per paid billing row: { d: 'YYYY-MM-DD', a: payment }, newest first; dates may repeat */
     var payItems = [];         /* row items: { type: 'p', d, a } or { type: 'y', y }; year markers occupy an item slot */
     var todayKey = '';         /* 'YYYY-MM-DD' for the current date */
     var payDatePage = 0;       /* current page index (5 items per page) */
@@ -226,19 +226,14 @@
         var t = new Date();
         var tk = t.getFullYear() + '-' + (t.getMonth() + 1 < 10 ? '0' : '') + (t.getMonth() + 1) + '-' + (t.getDate() < 10 ? '0' : '') + t.getDate();
         todayKey = tk;
-        var map = {};
-        var order = [];
         paymentsData.forEach(function(b) {
             var pd = String(b.payDate || '').trim();
             var pay = Number(b.payment || 0);
             if (!pd || pay <= 0) return;
             if (pd > tk) return;
-            if (map[pd]) { map[pd].a += pay; return; }
-            map[pd] = { d: pd, a: pay };
-            order.push(pd);
+            payDates.push({ d: pd, a: pay });
         });
-        order.sort(function(a, b) { return a < b ? 1 : a > b ? -1 : 0; });
-        order.forEach(function(pd) { payDates.push(map[pd]); });
+        payDates.sort(function(a, b) { return a.d < b.d ? 1 : a.d > b.d ? -1 : 0; });
         payItems = [];
         var prevY = null;
         payDates.forEach(function(pd) {
