@@ -19,6 +19,7 @@ function parseNum(s) {
     var searchQuery = '';
     var calMonth = null;
     var calPayList = [];
+    var payPage = 1;
 
     var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     var DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -502,6 +503,7 @@ function parseNum(s) {
             '<div class="pay-modal-list" id="payModalList"></div>' +
             '</div>';
         modal.onclick = function(e) { if (e.target === modal) closeDayModal(); };
+        payPage = 1;
         renderPayList('');
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -523,8 +525,12 @@ function parseNum(s) {
             listEl.innerHTML = '<div class="pay-list-empty">No payers found</div>';
             return;
         }
+        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        if (payPage > totalPages) payPage = totalPages;
+        if (payPage < 1) payPage = 1;
+        var start = (payPage - 1) * PAGE_SIZE;
         var html = '';
-        rows.forEach(function(e) {
+        rows.slice(start, start + PAGE_SIZE).forEach(function(e) {
             var m = MEMBERS[e.idx] || {};
             html += '<a class="pay-row" href="member.html?i=' + e.idx + '">' +
                 '<span class="pay-row-main"><span class="pay-row-name">' + esc(m.n || 'Unknown') + '</span>' +
@@ -532,6 +538,19 @@ function parseNum(s) {
                 '<span class="pay-row-amt">' + formatPeso(e.amt) + '</span>' +
                 '</a>';
         });
+        if (totalPages > 1) {
+            html += '<div class="pagination">' +
+                '<button type="button" class="page-btn' + (payPage === 1 ? ' disabled' : '') + '" onclick="window.__stats.calPage(' + (payPage - 1) + ')">&larr;</button>';
+            for (var p = 1; p <= totalPages; p++) {
+                if (totalPages > 12 && p > 3 && p < totalPages - 2 && Math.abs(p - payPage) > 2) {
+                    if (p === 4 || p === totalPages - 3) html += '<span class="page-ellipsis">&hellip;</span>';
+                    continue;
+                }
+                html += '<button type="button" class="page-btn' + (p === payPage ? ' active' : '') + '" onclick="window.__stats.calPage(' + p + ')">' + p + '</button>';
+            }
+            html += '<button type="button" class="page-btn' + (payPage === totalPages ? ' disabled' : '') + '" onclick="window.__stats.calPage(' + (payPage + 1) + ')">&rarr;</button>' +
+                '</div>';
+        }
         listEl.innerHTML = html;
     }
 
@@ -582,7 +601,15 @@ function parseNum(s) {
             renderStructure();
         },
         calOpen: openDayModal,
-        calSearch: renderPayList,
+        calSearch: function(v) {
+            payPage = 1;
+            renderPayList(v);
+        },
+        calPage: function(p) {
+            payPage = Number(p) || 1;
+            var inp = document.getElementById('payModalSearch');
+            renderPayList(inp ? inp.value : '');
+        },
         calClose: closeDayModal
     };
 
