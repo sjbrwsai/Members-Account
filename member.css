@@ -957,6 +957,11 @@ body.dark .pdates-year-label { color: #9fa8da; }
     outline: 2px solid #e65100;
     outline-offset: -2px;
 }
+.pdates-card.pdates-latest {
+    background: #e3e7fb;
+    border-color: #9fa8da;
+}
+body.dark .pdates-card.pdates-latest { background: #3a3a5c; border-color: #5c5c8a; }
 @media (max-width: 600px) {
     .pdates-wrap { padding: 12px; gap: 8px; }
     .pdates-arrow { width: 32px; height: 32px; font-size: 18px; }
