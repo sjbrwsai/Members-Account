@@ -103,7 +103,7 @@ function toggleTheme() {
 }
 
 function loadTheme() {
-    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    if (localStorage.getItem('theme') !== 'light') document.body.classList.add('dark');
     updateThemeToggleIcon();
 }
 
