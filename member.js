@@ -147,6 +147,7 @@
 
             '<div class="info-row">' +
             '<div class="info-item"><div class="dt-label">Date of Installation</div><div class="' + (member.doi ? dv : de) + '">' + (member.doi ? esc(member.doi) : '\u2014') + '</div></div>' +
+            '<div class="info-item"><div class="dt-label">Use</div><div class="' + (member.u ? dv : de) + '">' + (member.u ? esc(member.u) : '\u2014') + '</div></div>' +
             '</div>' +
 
             '</div>' +
