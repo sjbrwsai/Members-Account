@@ -11,12 +11,15 @@ var revealedOnce = false;
 var memberIndexMap = null;
 
 function getBalance(m) {
-    if (typeof PAYMENTS_BY_INDEX !== 'undefined' && PAYMENTS_BY_INDEX && typeof MEMBERS !== 'undefined') {
-        var idx = memberIndexMap ? memberIndexMap.get(m) : MEMBERS.indexOf(m);
-        if (idx !== -1 && PAYMENTS_BY_INDEX[idx] && PAYMENTS_BY_INDEX[idx].totalBalance !== undefined) {
-            var pb = PAYMENTS_BY_INDEX[idx].totalBalance;
-            return (pb === null || pb === '') ? null : Number(pb);
-        }
+    var idx = memberIndexMap ? memberIndexMap.get(m) : MEMBERS.indexOf(m);
+    if (idx === -1) return null;
+    if (typeof MEMBER_BALANCES !== 'undefined' && MEMBER_BALANCES && idx < MEMBER_BALANCES.length) {
+        var vb = MEMBER_BALANCES[idx];
+        return (vb === null || vb === undefined) ? null : Number(vb);
+    }
+    if (typeof PAYMENTS_BY_INDEX !== 'undefined' && PAYMENTS_BY_INDEX && PAYMENTS_BY_INDEX[idx]) {
+        var pb = PAYMENTS_BY_INDEX[idx].totalBalance;
+        return (pb === null || pb === '' || pb === undefined) ? null : Number(pb);
     }
     return null;
 }
